@@ -7,7 +7,7 @@ import java.awt.*;
 public class ComponentFactory {
 
     public static Font getHeaderFont(int size) {
-       return new Font("Comic Sans MS", Font.BOLD, size);
+       return new Font("Arial", Font.BOLD, size);
     }
 
     public static JButton createJButton(String title, Dimension d) {
@@ -16,11 +16,15 @@ public class ComponentFactory {
         return button;
     }
 
-    public static JPanel createHeaderPanel(String header) {
+    public static JPanel createHeaderPanel(String header, Dimension size) {
         JPanel panel = createJPanel();
+        panel.setPreferredSize(size);
         panel.setBorder(new LineBorder(Color.BLACK));
 
         JLabel label = createJLabel(header);
+        label.setPreferredSize(new Dimension(size.width-10, size.height-10));
+        label.setHorizontalAlignment(JLabel.CENTER);
+        label.setFont(getHeaderFont(16));
         panel.add(label);
         return panel;
     }
