@@ -1,6 +1,7 @@
 package com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 
@@ -29,12 +30,33 @@ public class ComponentFactory {
         return panel;
     }
 
+    public static Border createDefaultBorder() {
+        return new LineBorder(Color.BLACK);
+    }
+
     public static JLabel createJLabel(String text) {
         return new JLabel (text);
     }
 
     public static JPanel createJPanel() {
         return new JPanel();
+    }
+
+    public static JTextArea createJTextArea() {
+        JTextArea ta = new JTextArea();
+        ta.setLineWrap(true);
+        ta.setWrapStyleWord(true);
+        return ta;
+    }
+
+    public static JTextField createJTextField() {
+        return new JTextField();
+    }
+
+    public static JScrollPane createJScrollPane(Component component) {
+        JScrollPane jsp = new JScrollPane(component);
+        jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        return jsp;
     }
 
 }
