@@ -9,4 +9,6 @@ public class GuiConstants {
     public static final int DEFAULT_HALF_COMPONENT_WIDTH = 470;
 
     public static final int DEFAULT_HEADER_HEIGHT = 60;
+
+    public static boolean DEBUG = false;
 }

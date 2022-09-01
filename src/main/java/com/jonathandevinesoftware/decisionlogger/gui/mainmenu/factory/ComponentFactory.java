@@ -1,5 +1,7 @@
 package com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory;
 
+import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
@@ -39,7 +41,17 @@ public class ComponentFactory {
     }
 
     public static JPanel createJPanel() {
-        return new JPanel();
+        JPanel panel = new JPanel();
+        if(GuiConstants.DEBUG) {
+            panel.setBorder(new LineBorder(Color.RED));
+        }
+        return panel;
+    }
+
+    public static JPanel createDummyJPanel(int width, int height) {
+        JPanel panel = createJPanel();
+        panel.setPreferredSize(new Dimension(width, height));
+        return panel;
     }
 
     public static JTextArea createJTextArea() {
@@ -57,6 +69,10 @@ public class ComponentFactory {
         JScrollPane jsp = new JScrollPane(component);
         jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         return jsp;
+    }
+
+    public static JList<String> createJList() {
+        return new JList<>();
     }
 
 }
