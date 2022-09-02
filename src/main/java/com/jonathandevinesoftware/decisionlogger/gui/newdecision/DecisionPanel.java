@@ -25,6 +25,9 @@ public class DecisionPanel extends JPanel {
         jspDecision.setPreferredSize(new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH-20, 100));
 
         add(jspDecision);
-        add(new ValueSelectorPanel(GuiConstants.DEFAULT_HALF_COMPONENT_WIDTH, "Decision Maker"));
+        add(new ValueSelectorPanel(
+                GuiConstants.DEFAULT_HALF_COMPONENT_WIDTH,
+                "Decision Maker",
+                DecisionMakerDataSource.getInstance()));
     }
 }

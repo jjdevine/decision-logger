@@ -2,11 +2,15 @@ package com.jonathandevinesoftware.decisionlogger.gui.valueselector;
 
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
+import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
+import com.jonathandevinesoftware.decisionlogger.gui.utils.JTextFieldChangeHandler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class ValueSelectorPanel extends JPanel {
+public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandler {
 
     private JTextField tfAddValue;
     private JPanel valueInputPanel;
@@ -15,12 +19,16 @@ public class ValueSelectorPanel extends JPanel {
     private JButton bRemove;
 
     private JScrollPane jspSuggestions;
+    private JScrollPane jspSelections;
     private JList<String> lSuggestions;
     private JList<String> lSelections;
+
+    private ValueDataSource dataSource;
     private static final int HEIGHT = 360;
 
-    public ValueSelectorPanel(int width, String type) {
+    public ValueSelectorPanel(int width, String type, ValueDataSource dataSource) {
 
+        this.dataSource = dataSource;
         GuiConstants.DEBUG = false;
 
         setBorder(ComponentFactory.createDefaultBorder());
@@ -36,6 +44,7 @@ public class ValueSelectorPanel extends JPanel {
 
         tfAddValue = ComponentFactory.createJTextField();
         tfAddValue.setPreferredSize(new Dimension(valueInputPanelWidth - 10, 30));
+        GuiUtils.addTextFieldChangeHandler(tfAddValue, this);
 
         valueInputPanel.add(ComponentFactory.createJLabel("Add " + type));
         valueInputPanel.add(tfAddValue);
@@ -63,5 +72,12 @@ public class ValueSelectorPanel extends JPanel {
 
 
 
+    }
+
+    @Override
+    public void handleChange(JTextField changedTextField) {
+        System.out.println(dataSource.searchValues(changedTextField.getText()));
+
+        GuiUtils.setJListValues(lSuggestions, dataSource.searchValues(changedTextField.getText()));
     }
 }
