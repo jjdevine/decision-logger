@@ -2,6 +2,7 @@ package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
 
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
+import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ReferenceDataSource;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
 
 import javax.swing.*;

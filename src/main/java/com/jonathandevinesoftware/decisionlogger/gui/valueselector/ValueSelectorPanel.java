@@ -23,10 +23,10 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
     private JList<String> lSuggestions;
     private JList<String> lSelections;
 
-    private ValueDataSource dataSource;
+    private ReferenceDataSource dataSource;
     private static final int HEIGHT = 360;
 
-    public ValueSelectorPanel(int width, String type, ValueDataSource dataSource) {
+    public ValueSelectorPanel(int width, String type, ReferenceDataSource dataSource) {
 
         this.dataSource = dataSource;
         GuiConstants.DEBUG = false;

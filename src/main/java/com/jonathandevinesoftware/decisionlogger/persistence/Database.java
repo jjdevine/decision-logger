@@ -25,9 +25,9 @@ public class Database {
     static {
         try {
             tableToScript = new HashMap<>();
-            tableToScript.put("DECISIONMAKER", "CreateDecisionMaker");
+            tableToScript.put("PERSON", "CreatePerson");
 
-            //dropAllTables();
+          //  dropAllTables();
             initialiseTables(getConnection());
         } catch (SQLException e) {
             throw new RuntimeException(e);
