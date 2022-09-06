@@ -28,6 +28,6 @@ public class DecisionPanel extends JPanel {
         add(new ValueSelectorPanel(
                 GuiConstants.DEFAULT_HALF_COMPONENT_WIDTH,
                 "Decision Maker",
-                DecisionMakerDataSource.getInstance()));
+                PersonDataSource.getInstance()));
     }
 }

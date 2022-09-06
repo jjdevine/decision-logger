@@ -27,7 +27,7 @@ public class Database {
             tableToScript = new HashMap<>();
             tableToScript.put("DECISIONMAKER", "CreateDecisionMaker");
 
-            dropAllTables();
+            //dropAllTables();
             initialiseTables(getConnection());
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -97,7 +97,7 @@ public class Database {
         }
     }
 
-    private static void debugResultSet(ResultSet rs) throws SQLException {
+    public static void debugResultSet(ResultSet rs) throws SQLException {
 
         StringBuilder result = new StringBuilder();
         List<String> values = new ArrayList<>();
