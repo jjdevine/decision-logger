@@ -1,5 +1,7 @@
 package com.jonathandevinesoftware.decisionlogger.model;
 
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
+
 import java.util.List;
 
 public class Meeting {

@@ -16,7 +16,7 @@ public class PersonDataSource implements ReferenceDataSource {
     public List<Person> searchValues(String query) {
 
         try {
-            PersonDAO.getInstance().searchPerson(query);
+            return PersonDAO.getInstance().searchPerson(query);
         } catch (SQLException e) {
             e.printStackTrace();
         }

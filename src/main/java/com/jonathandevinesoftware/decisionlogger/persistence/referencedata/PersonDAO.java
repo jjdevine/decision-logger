@@ -64,6 +64,8 @@ public class PersonDAO {
         ps.close();
         conn.close();
 
+        result.forEach(System.out::println);
+
         return result;
     }
 

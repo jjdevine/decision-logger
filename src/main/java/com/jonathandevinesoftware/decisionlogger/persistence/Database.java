@@ -37,11 +37,13 @@ public class Database {
     public static Connection getConnection() throws SQLException {
 
         String connectionUrlBase = "jdbc:h2:file:";
+        String dbOptions = ";DB_CLOSE_ON_EXIT=TRUE;FILE_LOCK=NO";
 
         String connectionUrlFull =
                 connectionUrlBase
                 + getCurrentDirectory() + "\\"
-                + dbName;
+                + dbName
+                + dbOptions;
 
         System.out.println("Connection URL is " + connectionUrlFull);
 
@@ -60,10 +62,11 @@ public class Database {
                 }
                 executeCreateDDL(conn, loadSqlQuery(tableToScript.get(table)));
             } else {
-                if(ApplicationConstants.DEBUG) {
+                if (ApplicationConstants.DEBUG) {
                     System.out.println("Table <" + table + "> already exists");
                 }
             }
+
 
         }
     }

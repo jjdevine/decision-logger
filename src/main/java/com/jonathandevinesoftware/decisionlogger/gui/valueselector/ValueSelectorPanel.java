@@ -4,11 +4,11 @@ import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentF
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.JTextFieldChangeHandler;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.stream.Collectors;
 
 public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandler {
 
@@ -23,7 +23,7 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
     private JList<String> lSuggestions;
     private JList<String> lSelections;
 
-    private ReferenceDataSource dataSource;
+    private ReferenceDataSource<Person> dataSource;
     private static final int HEIGHT = 360;
 
     public ValueSelectorPanel(int width, String type, ReferenceDataSource dataSource) {
@@ -76,8 +76,14 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
 
     @Override
     public void handleChange(JTextField changedTextField) {
-        System.out.println(dataSource.searchValues(changedTextField.getText()));
 
-        GuiUtils.setJListValues(lSuggestions, dataSource.searchValues(changedTextField.getText()));
+        java.util.List<String> values = dataSource.searchValues(changedTextField.getText())
+                .stream()
+                .map(p -> p.getValue())
+                .collect(Collectors.toList());
+
+        System.out.println(values);
+
+        GuiUtils.setJListValues(lSuggestions, values);
     }
 }
