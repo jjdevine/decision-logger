@@ -8,6 +8,7 @@ import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Refer
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class PersonDataSource implements ReferenceDataSource {
 
@@ -25,17 +26,29 @@ public class PersonDataSource implements ReferenceDataSource {
     }
 
     @Override
-    public void addValue(ReferenceData value) {
-
-    }
-
-    @Override
-    public void addValue(Person person) {
+    public void addValue(ReferenceData person) {
         try {
-            PersonDAO.getInstance().addPerson(person);
+            if(person instanceof Person) {
+                PersonDAO.getInstance().addPerson((Person)person);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public ReferenceData getExactValue(String value) {
+        try {
+            return PersonDAO.getInstance().getPersonWithName(value);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public ReferenceData constructInstance(UUID id, String value) {
+        return new Person(id, value);
     }
 
     public static PersonDataSource getInstance() {

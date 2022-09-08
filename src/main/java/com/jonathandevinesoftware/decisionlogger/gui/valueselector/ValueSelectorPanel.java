@@ -4,12 +4,13 @@ import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentF
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.JTextFieldChangeHandler;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceData;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandler, ActionListener {
@@ -25,7 +26,7 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
     private JList<String> lSuggestions;
     private JList<String> lSelections;
 
-    private ReferenceDataSource<Person> dataSource;
+    private ReferenceDataSource dataSource;
     private static final int HEIGHT = 360;
 
     public ValueSelectorPanel(int width, String type, ReferenceDataSource dataSource) {
@@ -115,7 +116,15 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
     public void actionPerformed(ActionEvent e) {
 
         if(e.getSource() == bAdd) {
-            dataSource.
+            String value = tfAddValue.getText().trim();
+            if(value.length() > 0) {
+
+                //does value already exist?
+                ReferenceData r = dataSource.getExactValue(value);
+                if(r == null) {
+                    dataSource.addValue(dataSource.constructInstance(UUID.randomUUID(), value));
+                }
+            }
             tfAddValue.setText("");
         } else if(e.getSource() == bRemove) {
 

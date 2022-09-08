@@ -69,6 +69,29 @@ public class PersonDAO {
         return result;
     }
 
+    public Person getPersonWithName(String name) throws SQLException {
+        Connection conn = Database.getConnection();
+
+        PreparedStatement ps = conn.prepareStatement(
+                "SELECT id, name FROM person WHERE UPPER(name) LIKE ?");
+
+        ps.setString(1, name.toUpperCase());
+        ResultSet rs = ps.executeQuery();
+        Person result = null;
+
+        if(rs.next()) {
+            result= new Person(
+                    UUID.fromString(rs.getString("id")),
+                    rs.getString("name"));
+        }
+
+        rs.close();
+        ps.close();
+        conn.close();
+
+        return result;
+    }
+
     public static void main(String[] args) throws SQLException {
         PersonDAO.getInstance().addPerson(new Person(UUID.randomUUID(), "Bob"));
         PersonDAO.getInstance().addPerson(new Person(UUID.randomUUID(), "Fred"));
