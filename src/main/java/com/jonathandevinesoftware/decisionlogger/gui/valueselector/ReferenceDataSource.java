@@ -7,4 +7,6 @@ import java.util.List;
 public interface ReferenceDataSource<T extends ReferenceData> {
 
     List<T> searchValues(String query);
+
+    void addValue(T value);
 }

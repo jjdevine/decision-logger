@@ -10,5 +10,5 @@ public class GuiConstants {
 
     public static final int DEFAULT_HEADER_HEIGHT = 60;
 
-    public static boolean DEBUG = false;
+    public static boolean DEBUG = true;
 }

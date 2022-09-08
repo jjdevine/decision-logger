@@ -26,6 +26,7 @@ public class NewDecisionForm extends BaseForm {
                         GuiConstants.DEFAULT_HEADER_HEIGHT));
         add(headerPanel);
         add(new DecisionPanel());
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
 
     }
 }
