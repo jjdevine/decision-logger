@@ -3,17 +3,23 @@ package com.jonathandevinesoftware.decisionlogger.gui.valueselector;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
+import com.jonathandevinesoftware.decisionlogger.gui.utils.JListDoubleClickHandler;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.JTextFieldChangeHandler;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceData;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandler, ActionListener {
+public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandler, ActionListener, JListDoubleClickHandler {
 
     private JTextField tfAddValue;
     private JPanel valueInputPanel;
@@ -25,6 +31,7 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
     private JScrollPane jspSelections;
     private JList<String> lSuggestions;
     private JList<String> lSelections;
+    private java.util.List<ReferenceData> selectedItems;
 
     private ReferenceDataSource dataSource;
     private static final int HEIGHT = 360;
@@ -70,6 +77,7 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
         add(ComponentFactory.createJLabel("Suggestions"));
 
         lSuggestions = ComponentFactory.createJList();
+        GuiUtils.addJListDoubleClickHandler(lSuggestions, this);
         jspSuggestions = ComponentFactory.createJScrollPane(lSuggestions);
         jspSuggestions.setPreferredSize(new Dimension(width-24 , 100));
         add(jspSuggestions);
@@ -84,6 +92,8 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
         lSelections = ComponentFactory.createJList();
         jspSelections = ComponentFactory.createJScrollPane(lSelections);
         jspSelections.setPreferredSize(new Dimension(width-179 , 100));
+
+        selectedItems = new ArrayList<>();
 
         bRemove = ComponentFactory.createJButton(
                 "Remove",
@@ -102,10 +112,14 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
 
     @Override
     public void handleChange(JTextField changedTextField) {
+        refreshSuggestions();
+    }
 
-        java.util.List<String> values = dataSource.searchValues(changedTextField.getText())
+    private void refreshSuggestions() {
+        java.util.List<String> values = dataSource.searchValues(tfAddValue.getText())
                 .stream()
                 .map(p -> p.getValue())
+                .filter(s -> !selectedItems.stream().map(ReferenceData::getValue).collect(Collectors.toList()).contains(s)) //where item is already selected
                 .sorted()
                 .collect(Collectors.toList());
 
@@ -116,18 +130,44 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
     public void actionPerformed(ActionEvent e) {
 
         if(e.getSource() == bAdd) {
-            String value = tfAddValue.getText().trim();
-            if(value.length() > 0) {
-
-                //does value already exist?
-                ReferenceData r = dataSource.getExactValue(value);
-                if(r == null) {
-                    dataSource.addValue(dataSource.constructInstance(UUID.randomUUID(), value));
-                }
-            }
+            processSelection(tfAddValue.getText());
             tfAddValue.setText("");
         } else if(e.getSource() == bRemove) {
 
+        }
+    }
+
+    private void refreshSelectedItemView() {
+
+        System.out.println(selectedItems);
+
+        GuiUtils.setJListValues(lSelections,
+                selectedItems.stream().map(ReferenceData::getValue).collect(Collectors.toList()));
+    }
+
+    @Override
+    public void handleDoubleClick(JList clickedList) {
+        if(clickedList == lSuggestions) {
+            String selection = lSuggestions.getSelectedValue();
+            if(selection != null) {
+                processSelection(selection);
+                refreshSuggestions();
+            }
+        }
+    }
+
+    private void processSelection(String selection) {
+        selection = selection.trim();
+        if(selection.length() > 0) {
+
+            //does value already exist?
+            ReferenceData referenceData = dataSource.getExactValue(selection);
+            if(referenceData == null) {
+                referenceData = dataSource.constructInstance(UUID.randomUUID(), selection);
+                dataSource.addValue(referenceData);
+            }
+            selectedItems.add(referenceData);
+            refreshSelectedItemView();
         }
     }
 }
