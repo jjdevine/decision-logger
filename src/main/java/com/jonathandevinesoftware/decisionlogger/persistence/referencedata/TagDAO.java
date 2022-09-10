@@ -11,52 +11,52 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class PersonDAO {
+public class TagDAO {
 
-    private static PersonDAO instance;
+    private static TagDAO instance;
 
-    public static PersonDAO getInstance() {
+    public static TagDAO getInstance() {
         if (instance == null) {
-            instance = new PersonDAO();
+            instance = new TagDAO();
         }
         return instance;
     }
 
-    public void addPerson(Person person) throws SQLException {
+    public void addTag(Tag tag) throws SQLException {
 
         Connection conn = Database.getConnection();
 
         PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO person (id, name) VALUES (?, ?)");
+                "INSERT INTO tag (id, value) VALUES (?, ?)");
 
-        ps.setString(1, person.getId().toString());
-        ps.setString(2, person.getValue());
+        ps.setString(1, tag.getId().toString());
+        ps.setString(2, tag.getValue());
 
         ps.execute();
         ps.close();
         conn.close();
     }
 
-    public List<Person> searchPerson(String query) throws SQLException {
+    public List<Tag> searchTag(String query) throws SQLException {
 
         if(ApplicationConstants.DEBUG) {
-            System.out.println("Looking for person with query <" + query + ">");
+            System.out.println("Looking for tag with query <" + query + ">");
         }
 
         Connection conn = Database.getConnection();
 
         PreparedStatement ps = conn.prepareStatement(
-                "SELECT id, name FROM person WHERE UPPER(name) LIKE ?");
+                "SELECT id, value FROM tag WHERE UPPER(value) LIKE ?");
 
         ps.setString(1, "%" + query.toUpperCase() + "%");
         ResultSet rs = ps.executeQuery();
 
-        List<Person> result = new ArrayList<>();
+        List<Tag> result = new ArrayList<>();
 
         while(rs.next()) {
-            result.add(new Person(
+            result.add(new Tag(
                     UUID.fromString(rs.getString("id")),
-                    rs.getString("name")
+                    rs.getString("value")
             ));
         }
 
@@ -64,25 +64,23 @@ public class PersonDAO {
         ps.close();
         conn.close();
 
-        result.forEach(System.out::println);
-
         return result;
     }
 
-    public Person getPersonWithName(String name) throws SQLException {
+    public Tag getTagWithValue(String value) throws SQLException {
         Connection conn = Database.getConnection();
 
         PreparedStatement ps = conn.prepareStatement(
-                "SELECT id, name FROM person WHERE UPPER(name) LIKE ?");
+                "SELECT id, value FROM tag WHERE UPPER(value) LIKE ?");
 
-        ps.setString(1, name.toUpperCase());
+        ps.setString(1, value.toUpperCase());
         ResultSet rs = ps.executeQuery();
-        Person result = null;
+        Tag result = null;
 
         if(rs.next()) {
-            result= new Person(
+            result= new Tag(
                     UUID.fromString(rs.getString("id")),
-                    rs.getString("name"));
+                    rs.getString("value"));
         }
 
         rs.close();
@@ -92,4 +90,3 @@ public class PersonDAO {
         return result;
     }
 }
-

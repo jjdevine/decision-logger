@@ -8,7 +8,6 @@ public class Meeting {
 
     private int id;
 
-    private List<Tag> tags;
 
     private List<Person> attendees;
 
@@ -18,13 +17,6 @@ public class Meeting {
         return id;
     }
 
-    public List<Tag> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<Tag> tags) {
-        this.tags = tags;
-    }
 
     public List<Person> getAttendees() {
         return attendees;

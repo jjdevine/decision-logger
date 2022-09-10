@@ -34,7 +34,7 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
     private java.util.List<ReferenceData> selectedItems;
 
     private ReferenceDataSource dataSource;
-    private static final int HEIGHT = 360;
+    private static final int HEIGHT = 340;
 
     public ValueSelectorPanel(int width, String type, ReferenceDataSource dataSource) {
 
@@ -133,8 +133,17 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
             processSelection(tfAddValue.getText());
             tfAddValue.setText("");
         } else if(e.getSource() == bRemove) {
-
+            String selectedValue = lSelections.getSelectedValue();
+            if(selectedValue != null) {
+                selectedItems.removeIf(si -> si.getValue().equals(selectedValue));
+                refreshSuggestions();
+                refreshSelectedItemView();
+            }
         }
+    }
+
+    public java.util.List<ReferenceData> getSelectedValues() {
+        return selectedItems;
     }
 
     private void refreshSelectedItemView() {

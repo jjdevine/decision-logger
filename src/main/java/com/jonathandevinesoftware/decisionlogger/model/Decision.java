@@ -8,8 +8,6 @@ public class Decision {
 
     private int id;
 
-    private List<Tag> tags;
-
     private List<Person> decisionMakers;
 
     private String decisionText;
@@ -20,14 +18,6 @@ public class Decision {
 
     public int getId() {
         return id;
-    }
-
-    public List<Tag> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<Tag> tags) {
-        this.tags = tags;
     }
 
     public List<Person> getDecisionMakers() {

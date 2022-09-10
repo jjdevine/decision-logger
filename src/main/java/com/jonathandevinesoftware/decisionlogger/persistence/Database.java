@@ -26,6 +26,7 @@ public class Database {
         try {
             tableToScript = new HashMap<>();
             tableToScript.put("PERSON", "CreatePerson");
+            tableToScript.put("TAG", "CreateTag");
 
           //  dropAllTables();
             initialiseTables(getConnection());

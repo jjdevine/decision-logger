@@ -18,7 +18,7 @@ public class NewDecisionForm extends BaseForm {
 
     @Override
     protected void init() {
-        setPreferredSize(new Dimension(GuiConstants.DEFAULT_FORM_WIDTH, 1000));
+        setPreferredSize(new Dimension(GuiConstants.DEFAULT_FORM_WIDTH, 660));
         JPanel headerPanel = ComponentFactory.createHeaderPanel(
                 "New Decision",
                 new Dimension(
