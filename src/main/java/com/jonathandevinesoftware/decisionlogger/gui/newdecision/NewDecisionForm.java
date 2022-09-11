@@ -27,6 +27,5 @@ public class NewDecisionForm extends BaseForm {
         add(headerPanel);
         add(new DecisionPanel());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
     }
 }

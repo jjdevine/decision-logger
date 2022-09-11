@@ -3,12 +3,19 @@ package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-public class DecisionPanel extends JPanel {
+public class DecisionPanel extends JPanel implements ActionListener {
 
     private JTextArea taDecision;
     private JScrollPane jspDecision;
@@ -52,5 +59,93 @@ public class DecisionPanel extends JPanel {
 
         panelButtons.add(bSave);
         panelButtons.add(bCancel);
+
+        bSave.addActionListener(this);
+        bCancel.addActionListener(this);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if(e.getSource() == bSave) {
+            if(validateDecision()) {
+
+            }
+        }
+    }
+
+    private boolean validateDecision() {
+
+        java.util.List<String> errors = new ArrayList();
+
+        if(taDecision.getText().trim().length() == 0) {
+            errors.add("Decision text must not be empty");
+        }
+
+        if(vsDecisionMakers.getSelectedValues().size() == 0) {
+            errors.add("There must be at least one decision maker");
+        }
+
+        if(errors.size() > 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Errors:\n" + errors.stream().collect(Collectors.joining("\n")),
+                    "Validation Errors",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+
+        return true;
+    }
+
+    private ViewModel buildViewModel() {
+        ViewModel viewModel = new ViewModel();
+        viewModel.setDecision(taDecision.getText().trim());
+
+        List<Person> decisionMakers = new ArrayList<>();
+        decisionMakers.addAll(
+                vsDecisionMakers.getSelectedValues().stream().map(rd -> (Person)rd).collect(Collectors.toList()));
+        viewModel.setDecisionMakers(decisionMakers);
+
+        List<Tag> tags = new ArrayList<>();
+        tags.addAll(
+                vsTags.getSelectedValues().stream().map(rd -> (Tag)rd).collect(Collectors.toList()));
+        viewModel.setTags(tags);
+
+        return viewModel;
+    }
+
+    public interface Listener {
+        void onSave(ViewModel viewModel);
+    }
+
+    public class ViewModel {
+        String decision;
+        java.util.List<Person> decisionMakers;
+        java.util.List<Tag> tags;
+
+        public String getDecision() {
+            return decision;
+        }
+
+        public void setDecision(String decision) {
+            this.decision = decision;
+        }
+
+        public List<Person> getDecisionMakers() {
+            return decisionMakers;
+        }
+
+        public void setDecisionMakers(List<Person> decisionMakers) {
+            this.decisionMakers = decisionMakers;
+        }
+
+        public List<Tag> getTags() {
+            return tags;
+        }
+
+        public void setTags(List<Tag> tags) {
+            this.tags = tags;
+        }
     }
 }
