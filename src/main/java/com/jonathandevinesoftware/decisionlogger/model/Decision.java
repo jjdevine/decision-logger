@@ -1,25 +1,27 @@
 package com.jonathandevinesoftware.decisionlogger.model;
 
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
-
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class Decision {
 
-    private int id;
+    private UUID id;
 
-    private List<UUID> decisionMakers;
+    private List<UUID> decisionMakers = new ArrayList<>();
 
-    private List<UUID> tags;
+    private List<UUID> tags = new ArrayList<>();
 
     private String decisionText;
 
-    public Decision(int id) {
+    private LocalDateTime timestamp;
+
+    public Decision(UUID id) {
         this.id = id;
     }
 
-    public int getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -47,6 +49,14 @@ public class Decision {
         this.decisionText = decisionText;
     }
 
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Decision{");
@@ -54,6 +64,7 @@ public class Decision {
         sb.append(", decisionMakers=").append(decisionMakers);
         sb.append(", tags=").append(tags);
         sb.append(", decisionText='").append(decisionText).append('\'');
+        sb.append(", timestamp=").append(timestamp);
         sb.append('}');
         return sb.toString();
     }

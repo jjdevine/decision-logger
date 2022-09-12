@@ -11,8 +11,7 @@ public class MainMenuController implements MainMenuForm.MainFormListener {
     }
 
     public MainMenuController() {
-        mainMenu = new MainMenuForm();
-        mainMenu.setListener(this);
+        displayMainMenu();
     }
 
     @Override
@@ -27,7 +26,7 @@ public class MainMenuController implements MainMenuForm.MainFormListener {
 
     @Override
     public void onNewAdHocDecision() {
-        mainMenu.dispose();
+        closeMainMenu();
         new NewDecisionController();
     }
 
@@ -35,4 +34,28 @@ public class MainMenuController implements MainMenuForm.MainFormListener {
     public void onNewMeeting() {
 
     }
+
+    public void displayMainMenu() {
+        closeMainMenu();
+        mainMenu = new MainMenuForm();
+        mainMenu.setListener(this);
+    }
+
+    private void closeMainMenu() {
+        if(mainMenu != null) {
+            mainMenu.dispose();
+            mainMenu = null;
+        }
+    }
+
+    private static MainMenuController instance;
+
+    public static MainMenuController getInstance() {
+        if(instance == null) {
+            instance = new MainMenuController();
+        }
+        return instance;
+    }
+
+
 }

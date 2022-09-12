@@ -68,7 +68,17 @@ public class DecisionPanel extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == bSave) {
             if(validateDecision()) {
-
+                ViewModel viewModel = buildViewModel();
+                listeners.forEach(l -> l.onSave(viewModel));
+            }
+        } else if(e.getSource() == bCancel) {
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    "Close without saving?",
+                    "Cancel Decision?",
+                    JOptionPane.OK_CANCEL_OPTION);
+            if(choice == JOptionPane.OK_OPTION) {
+                listeners.forEach(Listener::onCancel);
             }
         }
     }
@@ -115,8 +125,16 @@ public class DecisionPanel extends JPanel implements ActionListener {
         return viewModel;
     }
 
+    private List<Listener> listeners = new ArrayList<>();
+
+    public void addListener(Listener listener) {
+        listeners.add(listener);
+    }
+
     public interface Listener {
         void onSave(ViewModel viewModel);
+
+        void onCancel();
     }
 
     public class ViewModel {
