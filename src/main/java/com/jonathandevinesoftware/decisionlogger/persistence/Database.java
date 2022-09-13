@@ -64,7 +64,7 @@ public class Database {
                 if(ApplicationConstants.DEBUG) {
                     System.out.println("Table <" + table + "> does not exist - creating..");
                 }
-                executeCreateDDL(conn, loadSqlQuery(tableToScript.get(table)));
+                executeCreateDDL(conn, DatabaseUtils.loadSqlQuery(tableToScript.get(table)));
             } else {
                 if (ApplicationConstants.DEBUG) {
                     System.out.println("Table <" + table + "> already exists");
@@ -90,7 +90,7 @@ public class Database {
         List<String> result = new ArrayList<>();
 
         try (
-            PreparedStatement stmt = conn.prepareStatement(loadSqlQuery("QueryExistingTables"));
+            PreparedStatement stmt = conn.prepareStatement(DatabaseUtils.loadSqlQuery("QueryExistingTables"));
             ResultSet rs = stmt.executeQuery())
         {
             while(rs.next()) {
@@ -126,10 +126,6 @@ public class Database {
         }
 
         System.out.println(result);
-    }
-
-    private static String loadSqlQuery(String queryName) {
-        return ResourceLoader.loadResourceFile(queryName + ".sql");
     }
 
     public static void main(String[] args) throws SQLException {

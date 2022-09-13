@@ -3,14 +3,15 @@ package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.BaseForm;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
-import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
+import com.jonathandevinesoftware.decisionlogger.model.Decision;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NewDecisionForm extends BaseForm implements DecisionPanel.Listener {
 
-    private JTextArea taDecision;
     private DecisionPanel decisionPanel;
 
     public NewDecisionForm() {
@@ -35,14 +36,23 @@ public class NewDecisionForm extends BaseForm implements DecisionPanel.Listener 
 
     @Override
     public void onSave(DecisionPanel.ViewModel viewModel) {
-        System.out.println("save");#
-        //TODO convert viewmodel to decision and save it, then load it to see if it's the same
-        //DecisionDAO.getInstance().saveDecision();
+        listeners.forEach(l -> l.onSave(viewModel));
     }
 
     @Override
     public void onCancel() {
-        System.out.println("cancel");
+        listeners.forEach(Listener::onCancel);
 
+    }
+
+    private List<Listener> listeners = new ArrayList<>();
+
+    public void addListener(Listener listener) {
+        listeners.add(listener);
+    }
+
+    public interface Listener {
+        void onSave(DecisionPanel.ViewModel viewModel);
+        void onCancel();
     }
 }
