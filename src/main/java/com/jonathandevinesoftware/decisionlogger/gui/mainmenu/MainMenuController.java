@@ -1,8 +1,9 @@
 package com.jonathandevinesoftware.decisionlogger.gui.mainmenu;
 
 import com.jonathandevinesoftware.decisionlogger.gui.newdecision.NewDecisionController;
+import com.jonathandevinesoftware.decisionlogger.gui.searchdecisions.SearchDecisionController;
 
-public class MainMenuController implements MainMenuForm.MainFormListener {
+public class MainMenuController {
 
     private MainMenuForm mainMenu;
 
@@ -14,23 +15,20 @@ public class MainMenuController implements MainMenuForm.MainFormListener {
         displayMainMenu();
     }
 
-    @Override
     public void onSearchMeetings() {
 
     }
 
-    @Override
     public void onSearchDecisions() {
-
+        closeMainMenu();
+        new SearchDecisionController();
     }
 
-    @Override
     public void onNewAdHocDecision() {
         closeMainMenu();
         new NewDecisionController();
     }
 
-    @Override
     public void onNewMeeting() {
 
     }
@@ -38,7 +36,10 @@ public class MainMenuController implements MainMenuForm.MainFormListener {
     public void displayMainMenu() {
         closeMainMenu();
         mainMenu = new MainMenuForm();
-        mainMenu.setListener(this);
+        mainMenu.setNewAdHocDecisionCallback(this::onNewAdHocDecision);
+        mainMenu.setNewMeetingCallback(this::onNewMeeting);
+        mainMenu.setSearchDecisionsCallback(this::onSearchDecisions);
+        mainMenu.setSearchMeetingsCallback(this::onNewMeeting);
     }
 
     private void closeMainMenu() {

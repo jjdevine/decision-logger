@@ -1,4 +1,4 @@
-package com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory;
+package com.jonathandevinesoftware.decisionlogger.gui.factory;
 
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 
@@ -11,6 +11,10 @@ public class ComponentFactory {
 
     public static Font getHeaderFont(int size) {
        return new Font("Arial", Font.BOLD, size);
+    }
+
+    public static Font getStandardFont(int size) {
+        return new Font("Arial", Font.BOLD, size);
     }
 
     public static JButton createJButton(String title, Dimension d) {
@@ -38,6 +42,12 @@ public class ComponentFactory {
 
     public static JLabel createJLabel(String text) {
         return new JLabel (text);
+    }
+
+    public static JLabel createJLabel(String text, int fontSize) {
+        JLabel label = createJLabel(text);
+        label.setFont(getStandardFont(fontSize));
+        return label;
     }
 
     public static JPanel createJPanel() {

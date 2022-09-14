@@ -1,7 +1,7 @@
 package com.jonathandevinesoftware.decisionlogger.gui.mainmenu;
 
-import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.BaseForm;
-import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentFactory;
+import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
+import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
 
 import javax.swing.*;
@@ -40,30 +40,37 @@ public class MainMenuForm extends BaseForm implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getSource().equals(bSearchMeetings)) {
-            listener.ifPresent(MainFormListener::onSearchMeetings);
+            searchMeetingsCallback.ifPresent(Runnable::run);
 
         } else if(e.getSource().equals(bSearchDecisions)) {
-            listener.ifPresent(MainFormListener::onSearchDecisions);
+            searchDecisionsCallback.ifPresent(Runnable::run);
 
         } else if(e.getSource().equals(bAdHocDecision)) {
-            listener.ifPresent(MainFormListener::onNewAdHocDecision);
+            newAdHocDecisionCallback.ifPresent(Runnable::run);
 
         } else if(e.getSource().equals(bCreateMeeting)) {
-            listener.ifPresent(MainFormListener::onNewMeeting);
+            newMeetingCallback.ifPresent(Runnable::run);
         }
     }
 
-    public interface MainFormListener {
+    private Optional<Runnable> searchMeetingsCallback = Optional.empty();
+    private Optional<Runnable> searchDecisionsCallback = Optional.empty();
+    private Optional<Runnable> newAdHocDecisionCallback = Optional.empty();
+    private Optional<Runnable> newMeetingCallback = Optional.empty();
 
-        void onSearchMeetings();
-        void onSearchDecisions();
-        void onNewAdHocDecision();
-        void onNewMeeting();
+    public void setSearchMeetingsCallback(Runnable searchMeetingsCallback) {
+        this.searchMeetingsCallback = Optional.of(searchMeetingsCallback);
     }
 
-    private Optional<MainFormListener> listener = Optional.empty();
+    public void setSearchDecisionsCallback(Runnable searchDecisionsCallback) {
+        this.searchDecisionsCallback = Optional.of(searchDecisionsCallback);
+    }
 
-    public void setListener(MainFormListener listener) {
-        this.listener = Optional.of(listener);
+    public void setNewAdHocDecisionCallback(Runnable newAdHocDecisionCallback) {
+        this.newAdHocDecisionCallback = Optional.of(newAdHocDecisionCallback);
+    }
+
+    public void setNewMeetingCallback(Runnable newMeetingCallback) {
+        this.newMeetingCallback = Optional.of(newMeetingCallback);
     }
 }

@@ -1,4 +1,4 @@
-package com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory;
+package com.jonathandevinesoftware.decisionlogger.gui.factory;
 
 import javax.swing.*;
 import java.awt.*;

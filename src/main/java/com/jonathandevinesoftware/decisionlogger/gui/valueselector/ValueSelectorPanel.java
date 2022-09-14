@@ -1,6 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.gui.valueselector;
 
-import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentFactory;
+import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.JListDoubleClickHandler;

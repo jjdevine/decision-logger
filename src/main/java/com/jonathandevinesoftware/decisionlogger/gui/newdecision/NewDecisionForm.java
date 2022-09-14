@@ -1,16 +1,15 @@
 package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
 
-import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.BaseForm;
-import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentFactory;
+import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
+import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
-import com.jonathandevinesoftware.decisionlogger.model.Decision;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-public class NewDecisionForm extends BaseForm implements DecisionPanel.Listener {
+public class NewDecisionForm extends BaseForm {
 
     private DecisionPanel decisionPanel;
 
@@ -29,30 +28,29 @@ public class NewDecisionForm extends BaseForm implements DecisionPanel.Listener 
         add(headerPanel);
 
         decisionPanel = new DecisionPanel();
-        decisionPanel.addListener(this);
+        decisionPanel.setSaveCallback(this::onSave);
+        decisionPanel.setCancelCallback(this::onCancel);
         add(decisionPanel);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
-    @Override
+    private Optional<Consumer<DecisionPanel.ViewModel>> saveCallback = Optional.empty();
+
+    public void setSaveCallback(Consumer<DecisionPanel.ViewModel> callback) {
+        saveCallback = Optional.of(callback);
+    }
+
     public void onSave(DecisionPanel.ViewModel viewModel) {
-        listeners.forEach(l -> l.onSave(viewModel));
+        saveCallback.ifPresent(c -> c.accept(viewModel));
     }
 
-    @Override
+    private Optional<Runnable> cancelCallback = Optional.empty();
+
+    public void setCancelCallback(Runnable callback) {
+        cancelCallback = Optional.of(callback);
+    }
+
     public void onCancel() {
-        listeners.forEach(Listener::onCancel);
-
-    }
-
-    private List<Listener> listeners = new ArrayList<>();
-
-    public void addListener(Listener listener) {
-        listeners.add(listener);
-    }
-
-    public interface Listener {
-        void onSave(DecisionPanel.ViewModel viewModel);
-        void onCancel();
+        cancelCallback.ifPresent(Runnable::run);
     }
 }

@@ -1,6 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
 
-import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.factory.ComponentFactory;
+import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
@@ -13,6 +13,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class DecisionPanel extends JPanel implements ActionListener {
@@ -69,7 +71,7 @@ public class DecisionPanel extends JPanel implements ActionListener {
         if(e.getSource() == bSave) {
             if(validateDecision()) {
                 ViewModel viewModel = buildViewModel();
-                listeners.forEach(l -> l.onSave(viewModel));
+                saveCallback.ifPresent(c -> c.accept(viewModel));
             }
         } else if(e.getSource() == bCancel) {
             int choice = JOptionPane.showConfirmDialog(
@@ -78,9 +80,21 @@ public class DecisionPanel extends JPanel implements ActionListener {
                     "Cancel Decision?",
                     JOptionPane.OK_CANCEL_OPTION);
             if(choice == JOptionPane.OK_OPTION) {
-                listeners.forEach(Listener::onCancel);
+                cancelCallback.ifPresent(Runnable::run);
             }
         }
+    }
+
+    private Optional<Consumer<ViewModel>> saveCallback = Optional.empty();
+
+    public void setSaveCallback(Consumer<ViewModel> saveCallback) {
+        this.saveCallback = Optional.of(saveCallback);
+    }
+
+    private Optional<Runnable> cancelCallback = Optional.empty();
+
+    public void setCancelCallback(Runnable cancelCallback) {
+        this.cancelCallback = Optional.of(cancelCallback);
     }
 
     private boolean validateDecision() {
@@ -125,17 +139,6 @@ public class DecisionPanel extends JPanel implements ActionListener {
         return viewModel;
     }
 
-    private List<Listener> listeners = new ArrayList<>();
-
-    public void addListener(Listener listener) {
-        listeners.add(listener);
-    }
-
-    public interface Listener {
-        void onSave(ViewModel viewModel);
-
-        void onCancel();
-    }
 
     public class ViewModel {
         String decision;
