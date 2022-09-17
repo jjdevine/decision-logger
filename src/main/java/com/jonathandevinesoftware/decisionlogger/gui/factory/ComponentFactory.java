@@ -6,6 +6,8 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class ComponentFactory {
 
@@ -20,6 +22,13 @@ public class ComponentFactory {
     public static JButton createJButton(String title, Dimension d) {
         JButton button = new JButton(title);
         button.setPreferredSize(d);
+        return button;
+    }
+
+    public static JButton createJButton(String title, Dimension d, Runnable onClick) {
+        JButton button = new JButton(title);
+        button.setPreferredSize(d);
+        button.addActionListener(e -> onClick.run());
         return button;
     }
 

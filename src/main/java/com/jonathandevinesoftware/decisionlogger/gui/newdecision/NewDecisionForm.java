@@ -2,6 +2,7 @@ package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
 
 import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
+import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 
 import javax.swing.*;
@@ -31,7 +32,6 @@ public class NewDecisionForm extends BaseForm {
         decisionPanel.setSaveCallback(this::onSave);
         decisionPanel.setCancelCallback(this::onCancel);
         add(decisionPanel);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     private Optional<Consumer<DecisionPanel.ViewModel>> saveCallback = Optional.empty();
@@ -52,5 +52,11 @@ public class NewDecisionForm extends BaseForm {
 
     public void onCancel() {
         cancelCallback.ifPresent(Runnable::run);
+    }
+
+    @Override
+    public void closeOperation() {
+        dispose();
+        MainMenuController.getInstance().displayMainMenu();
     }
 }

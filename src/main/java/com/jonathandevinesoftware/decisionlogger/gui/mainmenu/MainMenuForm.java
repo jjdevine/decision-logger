@@ -73,4 +73,10 @@ public class MainMenuForm extends BaseForm implements ActionListener {
     public void setNewMeetingCallback(Runnable newMeetingCallback) {
         this.newMeetingCallback = Optional.of(newMeetingCallback);
     }
+
+    @Override
+    public void closeOperation() {
+        dispose();
+        System.exit(0);
+    }
 }
