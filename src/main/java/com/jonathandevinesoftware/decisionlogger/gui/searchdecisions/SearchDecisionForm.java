@@ -7,6 +7,7 @@ import com.jonathandevinesoftware.decisionlogger.gui.newdecision.PersonDataSourc
 import com.jonathandevinesoftware.decisionlogger.gui.newdecision.TagDataSource;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceData;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class SearchDecisionForm extends BaseForm {
 
@@ -76,8 +78,17 @@ public class SearchDecisionForm extends BaseForm {
     }
 
     private void onSearchClick() {
-        //TODO: pass decision maker and tag ids
-        searchCallback.ifPresent(c -> c.accept(null, null));
+        java.util.List<UUID> decisionMakerIds =
+                vsDecisionMakers.getSelectedValues().stream()
+                        .map(ReferenceData::getId)
+                        .collect(Collectors.toList());
+
+        java.util.List<UUID> tagIds =
+                vsTags.getSelectedValues().stream()
+                        .map(ReferenceData::getId)
+                        .collect(Collectors.toList());
+
+        searchCallback.ifPresent(c -> c.accept(decisionMakerIds, tagIds));
     }
 
     @Override

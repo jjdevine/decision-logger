@@ -3,6 +3,7 @@ package com.jonathandevinesoftware.decisionlogger.model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class Decision {
@@ -16,6 +17,8 @@ public class Decision {
     private String decisionText;
 
     private LocalDateTime timestamp;
+
+    private Optional<UUID> linkedMeeting = Optional.empty();
 
     public Decision(UUID id) {
         this.id = id;
@@ -57,6 +60,14 @@ public class Decision {
         this.timestamp = timestamp;
     }
 
+    public Optional<UUID> getLinkedMeeting() {
+        return linkedMeeting;
+    }
+
+    public void setLinkedMeeting(Optional<UUID> linkedMeeting) {
+        this.linkedMeeting = linkedMeeting;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Decision{");
@@ -65,6 +76,7 @@ public class Decision {
         sb.append(", tags=").append(tags);
         sb.append(", decisionText='").append(decisionText).append('\'');
         sb.append(", timestamp=").append(timestamp);
+        sb.append(", linkedMeeting=").append(linkedMeeting);
         sb.append('}');
         return sb.toString();
     }

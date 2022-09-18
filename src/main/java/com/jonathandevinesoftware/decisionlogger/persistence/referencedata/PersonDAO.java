@@ -10,14 +10,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class PersonDAO {
 
+    private List<Person> cache = new ArrayList<>();
+
     private static PersonDAO instance;
 
-    public static PersonDAO getInstance() {
+    public static PersonDAO getInstance() throws SQLException {
         if (instance == null) {
             instance = new PersonDAO();
+            instance.initialiseCache();
         }
         return instance;
     }
@@ -35,10 +39,41 @@ public class PersonDAO {
         ps.execute();
         ps.close();
         conn.close();
+
+        cache.add(person);
+    }
+
+    private void initialiseCache() throws SQLException {
+        System.out.println("Initialising cache");
+
+        Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(
+                "SELECT id, name FROM person");
+
+        ResultSet rs = ps.executeQuery();
+
+        List<Person> result = new ArrayList<>();
+
+        while(rs.next()) {
+            cache.add(new Person(
+                    UUID.fromString(rs.getString("id")),
+                    rs.getString("name")
+            ));
+        }
+
+        rs.close();
+        ps.close();
+        conn.close();
     }
 
     public List<Person> searchPerson(String query) throws SQLException {
 
+        return cache.stream()
+                .filter(p -> p.getValue().contains(query))
+                .collect(Collectors.toList());
+    }
+
+    private List<Person> searchPersonDB(String query) throws SQLException {
         if(ApplicationConstants.DEBUG) {
             System.out.println("Looking for person with query <" + query + ">");
         }
@@ -68,6 +103,13 @@ public class PersonDAO {
 
         return result;
     }
+
+    public List<Person> getPeopleWithIds(List<UUID> ids) {
+        return cache.stream()
+                .filter(p -> ids.contains(p.getId()))
+                .collect(Collectors.toList());
+    }
+
 
     public Person getPersonWithName(String name) throws SQLException {
         Connection conn = Database.getConnection();
