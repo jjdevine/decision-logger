@@ -11,7 +11,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,7 +40,11 @@ public class DecisionDAO {
         int index = 1;
         ps.setString(index++, decision.getId().toString());
         ps.setString(index++, decision.getDecisionText());
-        ps.setString(index++, decision.getLinkedMeeting().toString());
+        if(decision.getLinkedMeeting().isPresent()) {
+            ps.setString(index++, decision.getLinkedMeeting().get().toString());
+        } else {
+            ps.setString(index++, null);
+        }
         ps.setTimestamp(index++, Timestamp.valueOf(decision.getTimestamp()));
 
         ps.execute();
@@ -124,13 +130,110 @@ public class DecisionDAO {
 
         Connection conn = Database.getConnection();
 
-        String query = DatabaseUtils.loadSqlQuery("QueryDecisions")
-                .replace("DM_PLACEHOLDERS", placeholders(decisionMakerIds.size()))
-                .replace("T_PLACEHOLDERS", placeholders(tagIds.size()));
+        String query = buildQueryDecisionsSql(decisionMakerIds, tagIds, "SELECT d.*");
 
         System.out.println(query);
 
         PreparedStatement ps = conn.prepareStatement(query);
+        applyQueryDecisionsSqlParams(decisionMakerIds, tagIds, ps);
+
+        List<Decision> decisionList = new ArrayList<>();
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            decisionList.add(mapRow(rs));
+        }
+
+        rs.close();
+        ps.close();
+
+
+        //TODO: load Tag and Decision maker Ids
+
+        /*
+            Execute 2 queries - one for all decision maker ids for any decisions returned,
+            the second for all tag ids for any decisions returned. Once we have this information
+            we will map in memory all the decision makers/tags to the decisions they belong to.
+         */
+
+        //load decision maker ids
+        /*
+            SELECT dm.DecisionId, dm.DecisionMakerId
+            FROM DecisionMaker dm
+            WHERE dm.DecisionId
+            IN (SUBQUERY)
+         */
+        String decisionMakerSql =
+                "SELECT dm.DecisionId, dm.DecisionMakerId\n " +
+                        "FROM DecisionMaker dm\n " +
+                        "WHERE dm.DecisionId \n " +
+                        "IN (\nSUBQUERY)".replace(
+                                "SUBQUERY",
+                                buildQueryDecisionsSql(decisionMakerIds, tagIds, "SELECT d.id"));
+        ps = conn.prepareStatement(decisionMakerSql);
+        applyQueryDecisionsSqlParams(decisionMakerIds, tagIds, ps);
+
+        rs = ps.executeQuery();
+
+        //can't use hashmap because there are multiple entries?
+        // https://stackoverflow.com/questions/8229473/hashmap-one-key-multiple-values
+        Map<UUID, UUID> decisionToDecisionMaker = new HashMap<>();
+        while(rs.next()) {
+            decisionToDecisionMaker.put(
+                UUID.fromString(rs.getString("DecisionId")),
+                UUID.fromString(rs.getString("DecisionMakerId"))
+            );
+        }
+
+        for(Decision decision: decisionList) {
+
+        }
+
+        rs.close();
+        ps.close();
+
+        conn.close();
+        return decisionList;
+    }
+
+    private String buildQueryDecisionsSql(List<UUID> decisionMakerIds, List<UUID> tagIds, String selectStatement) {
+        /*
+        Ideal SQL is:
+
+            SELECT d.*
+            FROM Decision d
+            INNER JOIN Decision_DecisionMaker dm on dm.DecisionId = d.Id
+            INNER JOIN Decision_Tag t on t.DecisionId = d.Id
+            WHERE dm.id IN (?, ?)
+            OR t.id IN (?, ?)
+
+        But if either list is empty, the join and associated filter needs to be removed or there will be no results
+         */
+
+        boolean decisionMakersEmpty = decisionMakerIds.isEmpty();
+        boolean tagsEmpty = tagIds.isEmpty();
+        StringBuilder sql = new StringBuilder();
+        sql.append(selectStatement + "\n ");
+        sql.append("FROM Decision d\n ");
+        if(!decisionMakersEmpty) {
+            sql.append("INNER JOIN Decision_DecisionMaker dm on dm.DecisionId = d.Id\n ");
+        }
+        if(!tagsEmpty) {
+            sql.append("INNER JOIN Decision_Tag t on t.DecisionId = d.Id\n ");
+        }
+        if(!decisionMakersEmpty) {
+            sql.append("WHERE dm.DecisionMakerId IN (DM_PLACEHOLDERS)\n "
+                    .replace("DM_PLACEHOLDERS", placeholders(decisionMakerIds.size())));
+        }
+        if(!tagsEmpty) {
+            String filterClause = decisionMakersEmpty ? "WHERE" : "OR";
+            sql.append(filterClause + " t.TagId IN (T_PLACEHOLDERS)\n "
+                    .replace("T_PLACEHOLDERS", placeholders(tagIds.size())));
+        }
+        return sql.toString();
+    }
+
+    private void applyQueryDecisionsSqlParams(List<UUID> decisionMakerIds, List<UUID> tagIds, PreparedStatement ps) throws SQLException {
 
         int index=1;
         for(UUID decisionMakerId: decisionMakerIds) {
@@ -140,26 +243,8 @@ public class DecisionDAO {
         for(UUID tagId: tagIds) {
             ps.setString(index++, tagId.toString());
         }
-
-        List<Decision> decisionList = new ArrayList<>();
-
-        ResultSet rs = ps.executeQuery();
-
-        while (rs.next()) {
-            decisionList.add(mapRow(rs));
-        }
-
-        rs.close();
-        ps.close();
-        conn.close();
-
-        //TODO: load Tag and Decision maker Ids
-        for(Decision decision: decisionList) {
-
-        }
-
-        return decisionList;
     }
+
 
     public static void main(String[] args) throws SQLException {
         System.out.println(DecisionDAO.getInstance().loadDecision(UUID.fromString("750161b3-360e-467d-b51d-61c9d1f63472")));
@@ -169,7 +254,11 @@ public class DecisionDAO {
         Decision decision = new Decision(UUID.fromString(rs.getString("id")));
         decision.setDecisionText(rs.getString("text"));
         decision.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
-        decision.setLinkedMeeting(Optional.ofNullable(UUID.fromString(rs.getString("linkedMeeting"))));
+        String linkedMeeting = rs.getString("linkedMeeting");
+        if(linkedMeeting != null) {
+            decision.setLinkedMeeting(Optional.of(UUID.fromString(linkedMeeting)));
+        }
+
         return decision;
     }
 
