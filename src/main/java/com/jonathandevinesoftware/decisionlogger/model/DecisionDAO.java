@@ -1,5 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.model;
 
+import com.jonathandevinesoftware.decisionlogger.gui.utils.MultiMap;
 import com.jonathandevinesoftware.decisionlogger.persistence.Database;
 import com.jonathandevinesoftware.decisionlogger.persistence.DatabaseUtils;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
@@ -147,15 +148,24 @@ public class DecisionDAO {
         rs.close();
         ps.close();
 
-
-        //TODO: load Tag and Decision maker Ids
-
         /*
             Execute 2 queries - one for all decision maker ids for any decisions returned,
             the second for all tag ids for any decisions returned. Once we have this information
             we will map in memory all the decision makers/tags to the decisions they belong to.
          */
 
+        applyDecisionMakers(decisionMakerIds, tagIds, decisionList, conn);
+        applyTags(decisionMakerIds, tagIds, decisionList, conn);
+
+        conn.close();
+        return decisionList;
+    }
+
+    private void applyDecisionMakers(
+            List<UUID> decisionMakerIds,
+            List<UUID> tagIds,
+            List<Decision> decisionList,
+            Connection conn) throws SQLException {
         //load decision maker ids
         /*
             SELECT dm.DecisionId, dm.DecisionMakerId
@@ -165,35 +175,68 @@ public class DecisionDAO {
          */
         String decisionMakerSql =
                 "SELECT dm.DecisionId, dm.DecisionMakerId\n " +
-                        "FROM DecisionMaker dm\n " +
+                        "FROM Decision_DecisionMaker dm\n " +
                         "WHERE dm.DecisionId \n " +
                         "IN (\nSUBQUERY)".replace(
                                 "SUBQUERY",
                                 buildQueryDecisionsSql(decisionMakerIds, tagIds, "SELECT d.id"));
-        ps = conn.prepareStatement(decisionMakerSql);
+        PreparedStatement ps = conn.prepareStatement(decisionMakerSql);
         applyQueryDecisionsSqlParams(decisionMakerIds, tagIds, ps);
 
-        rs = ps.executeQuery();
+        ResultSet rs = ps.executeQuery();
 
-        //can't use hashmap because there are multiple entries?
-        // https://stackoverflow.com/questions/8229473/hashmap-one-key-multiple-values
-        Map<UUID, UUID> decisionToDecisionMaker = new HashMap<>();
+        //A decision can have multiple decision makers so can't use a standard map
+        MultiMap<UUID, UUID> decisionToDecisionMaker = new MultiMap<>();
         while(rs.next()) {
             decisionToDecisionMaker.put(
-                UUID.fromString(rs.getString("DecisionId")),
-                UUID.fromString(rs.getString("DecisionMakerId"))
+                    UUID.fromString(rs.getString("DecisionId")),
+                    UUID.fromString(rs.getString("DecisionMakerId"))
             );
         }
 
         for(Decision decision: decisionList) {
-
+            decision.setDecisionMakers(
+                    decisionToDecisionMaker.getValuesOrNewList(decision.getId()));
         }
 
         rs.close();
         ps.close();
+    }
 
-        conn.close();
-        return decisionList;
+    private void applyTags(
+            List<UUID> decisionMakerIds,
+            List<UUID> tagIds,
+            List<Decision> decisionList,
+            Connection conn) throws SQLException {
+        //load tag ids
+        String tagSql =
+                "SELECT dt.DecisionId, dt.TagId\n " +
+                        "FROM Decision_Tag dt\n " +
+                        "WHERE dt.DecisionId \n " +
+                        "IN (\nSUBQUERY)".replace(
+                                "SUBQUERY",
+                                buildQueryDecisionsSql(decisionMakerIds, tagIds, "SELECT d.id"));
+        PreparedStatement ps = conn.prepareStatement(tagSql);
+        applyQueryDecisionsSqlParams(decisionMakerIds, tagIds, ps);
+
+        ResultSet rs = ps.executeQuery();
+
+        //A decision can have multiple tags so can't use a standard map
+        MultiMap<UUID, UUID> decisionToTag = new MultiMap<>();
+        while(rs.next()) {
+            decisionToTag.put(
+                    UUID.fromString(rs.getString("DecisionId")),
+                    UUID.fromString(rs.getString("TagId"))
+            );
+        }
+
+        for(Decision decision: decisionList) {
+            decision.setTags(
+                    decisionToTag.getValuesOrNewList(decision.getId()));
+        }
+
+        rs.close();
+        ps.close();
     }
 
     private String buildQueryDecisionsSql(List<UUID> decisionMakerIds, List<UUID> tagIds, String selectStatement) {

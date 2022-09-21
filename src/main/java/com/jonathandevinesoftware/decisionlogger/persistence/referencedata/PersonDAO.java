@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -108,6 +109,12 @@ public class PersonDAO {
         return cache.stream()
                 .filter(p -> ids.contains(p.getId()))
                 .collect(Collectors.toList());
+    }
+
+    public Optional<Person> getPersonWithId(UUID id) {
+        return cache.stream()
+                .filter(p -> id.equals(id))
+                .findFirst();
     }
 
 

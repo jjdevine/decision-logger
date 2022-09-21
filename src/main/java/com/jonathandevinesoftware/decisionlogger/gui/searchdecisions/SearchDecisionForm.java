@@ -11,7 +11,6 @@ import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Refer
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -116,6 +115,11 @@ public class SearchDecisionForm extends BaseForm {
             panelFilters.setPreferredSize(dimExpandedFilters);
             filtersExpanded = true;
         }
+        revalidate();
+    }
+
+    public void addSearchResult() {
+        add(SearchDecisionResultPanel.buildSearchDecisionResultPanel());
         revalidate();
     }
 
