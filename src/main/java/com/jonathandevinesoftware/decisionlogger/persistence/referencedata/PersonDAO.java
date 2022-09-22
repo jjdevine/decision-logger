@@ -1,6 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.persistence.referencedata;
 
-import com.jonathandevinesoftware.decisionlogger.core.ApplicationConstants;
+import com.jonathandevinesoftware.decisionlogger.core.Application;
 import com.jonathandevinesoftware.decisionlogger.persistence.Database;
 
 import java.sql.Connection;
@@ -70,75 +70,27 @@ public class PersonDAO {
     public List<Person> searchPerson(String query) throws SQLException {
 
         return cache.stream()
-                .filter(p -> p.getValue().contains(query))
-                .collect(Collectors.toList());
-    }
-
-    private List<Person> searchPersonDB(String query) throws SQLException {
-        if(ApplicationConstants.DEBUG) {
-            System.out.println("Looking for person with query <" + query + ">");
-        }
-
-        Connection conn = Database.getConnection();
-
-        PreparedStatement ps = conn.prepareStatement(
-                "SELECT id, name FROM person WHERE UPPER(name) LIKE ?");
-
-        ps.setString(1, "%" + query.toUpperCase() + "%");
-        ResultSet rs = ps.executeQuery();
-
-        List<Person> result = new ArrayList<>();
-
-        while(rs.next()) {
-            result.add(new Person(
-                    UUID.fromString(rs.getString("id")),
-                    rs.getString("name")
-            ));
-        }
-
-        rs.close();
-        ps.close();
-        conn.close();
-
-        result.forEach(System.out::println);
-
-        return result;
-    }
-
-    public List<Person> getPeopleWithIds(List<UUID> ids) {
-        return cache.stream()
-                .filter(p -> ids.contains(p.getId()))
+                .filter(p -> p.getValue().toUpperCase().contains(query.toUpperCase()))
                 .collect(Collectors.toList());
     }
 
     public Optional<Person> getPersonWithId(UUID id) {
-        return cache.stream()
-                .filter(p -> id.equals(id))
+        Optional<Person> result = cache.stream()
+                .filter(p -> p.getId().equals(id))
                 .findFirst();
+
+        Application.debug("searched for " + id + " ... returning " + result);
+
+        return result;
     }
 
 
-    public Person getPersonWithName(String name) throws SQLException {
-        Connection conn = Database.getConnection();
-
-        PreparedStatement ps = conn.prepareStatement(
-                "SELECT id, name FROM person WHERE UPPER(name) LIKE ?");
-
-        ps.setString(1, name.toUpperCase());
-        ResultSet rs = ps.executeQuery();
-        Person result = null;
-
-        if(rs.next()) {
-            result= new Person(
-                    UUID.fromString(rs.getString("id")),
-                    rs.getString("name"));
-        }
-
-        rs.close();
-        ps.close();
-        conn.close();
-
-        return result;
+    public Person getPersonWithName(String name) {
+        return cache
+                .stream()
+                .filter(p -> p.getValue().toUpperCase().equals(name.toUpperCase()))
+                .findFirst()
+                .get();
     }
 }
 

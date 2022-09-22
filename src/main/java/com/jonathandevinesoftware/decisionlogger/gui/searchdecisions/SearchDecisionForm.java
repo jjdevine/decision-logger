@@ -118,8 +118,8 @@ public class SearchDecisionForm extends BaseForm {
         revalidate();
     }
 
-    public void addSearchResult() {
-        add(SearchDecisionResultPanel.buildSearchDecisionResultPanel());
+    public void addSearchResult(SearchDecisionResultViewModel viewModel) {
+        add(SearchDecisionResultPanel.buildSearchDecisionResultPanel(viewModel));
         revalidate();
     }
 

@@ -34,7 +34,6 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
     public ValueSelectorPanel(int width, String type, ReferenceDataSource dataSource) {
 
         this.dataSource = dataSource;
-        GuiConstants.DEBUG = false;
 
         setBorder(ComponentFactory.createDefaultBorder());
         setPreferredSize(new Dimension(width, HEIGHT));

@@ -1,6 +1,5 @@
 package com.jonathandevinesoftware.decisionlogger.persistence.referencedata;
 
-import com.jonathandevinesoftware.decisionlogger.core.ApplicationConstants;
 import com.jonathandevinesoftware.decisionlogger.persistence.Database;
 
 import java.sql.Connection;
@@ -9,17 +8,45 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class TagDAO {
 
+    private List<Tag> cache = new ArrayList<>();
+
     private static TagDAO instance;
 
-    public static TagDAO getInstance() {
+    public static TagDAO getInstance() throws SQLException {
         if (instance == null) {
             instance = new TagDAO();
+            instance.initialiseCache();
         }
         return instance;
+    }
+
+    private void initialiseCache() throws SQLException {
+        System.out.println("Initialising cache");
+
+        Connection conn = Database.getConnection();
+        PreparedStatement ps = conn.prepareStatement(
+                "SELECT Id, Value FROM Tag");
+
+        ResultSet rs = ps.executeQuery();
+
+        List<Person> result = new ArrayList<>();
+
+        while(rs.next()) {
+            cache.add(new Tag(
+                    UUID.fromString(rs.getString("id")),
+                    rs.getString("Value")
+            ));
+        }
+
+        rs.close();
+        ps.close();
+        conn.close();
     }
 
     public void addTag(Tag tag) throws SQLException {
@@ -33,60 +60,30 @@ public class TagDAO {
         ps.setString(2, tag.getValue());
 
         ps.execute();
+        cache.add(tag);
+
         ps.close();
         conn.close();
     }
 
     public List<Tag> searchTag(String query) throws SQLException {
-
-        if(ApplicationConstants.DEBUG) {
-            System.out.println("Looking for tag with query <" + query + ">");
-        }
-
-        Connection conn = Database.getConnection();
-
-        PreparedStatement ps = conn.prepareStatement(
-                "SELECT id, value FROM tag WHERE UPPER(value) LIKE ?");
-
-        ps.setString(1, "%" + query.toUpperCase() + "%");
-        ResultSet rs = ps.executeQuery();
-
-        List<Tag> result = new ArrayList<>();
-
-        while(rs.next()) {
-            result.add(new Tag(
-                    UUID.fromString(rs.getString("id")),
-                    rs.getString("value")
-            ));
-        }
-
-        rs.close();
-        ps.close();
-        conn.close();
-
-        return result;
+        return cache.stream()
+                .filter(t -> t.getValue().toUpperCase().contains(query.toUpperCase()))
+                .collect(Collectors.toList());
     }
 
-    public Tag getTagWithValue(String value) throws SQLException {
-        Connection conn = Database.getConnection();
+    public Tag getTagWithValue(String value) {
+        return cache
+                .stream()
+                .filter(t -> t.getValue().toUpperCase().equals(value.toUpperCase()))
+                .findFirst()
+                .get();
+    }
 
-        PreparedStatement ps = conn.prepareStatement(
-                "SELECT id, value FROM tag WHERE UPPER(value) LIKE ?");
-
-        ps.setString(1, value.toUpperCase());
-        ResultSet rs = ps.executeQuery();
-        Tag result = null;
-
-        if(rs.next()) {
-            result= new Tag(
-                    UUID.fromString(rs.getString("id")),
-                    rs.getString("value"));
-        }
-
-        rs.close();
-        ps.close();
-        conn.close();
-
-        return result;
+    public Optional<Tag> getTagWithId(UUID id) {
+        return cache
+                .stream()
+                .filter(t -> t.getId().equals(id))
+                .findFirst();
     }
 }
