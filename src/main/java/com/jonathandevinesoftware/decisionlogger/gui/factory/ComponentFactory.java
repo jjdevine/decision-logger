@@ -68,6 +68,15 @@ public class ComponentFactory {
         return panel;
     }
 
+    public static JPanel createJPanelWithMargin(int verticalMargin, int horizontalMargin) {
+        JPanel panel = createJPanel();
+        FlowLayout layout = new FlowLayout();
+        layout.setVgap(verticalMargin);
+        layout.setHgap(horizontalMargin);
+        panel.setLayout(layout);
+        return panel;
+    }
+
     public static JPanel createDummyJPanel(int width, int height) {
         JPanel panel = createJPanel();
         panel.setPreferredSize(new Dimension(width, height));

@@ -15,6 +15,10 @@ public class SearchDecisionResultViewModel {
     private String linkedMeetingTitle;
     private Optional<UUID> linkedMeetingId;
 
+    private List<String> decisionMakerSearchTerms;
+
+    private List<String> tagSearchTerms;
+
     public UUID getDecisionId() {
         return decisionId;
     }
@@ -71,6 +75,22 @@ public class SearchDecisionResultViewModel {
         this.linkedMeetingId = linkedMeetingId;
     }
 
+    public List<String> getDecisionMakerSearchTerms() {
+        return decisionMakerSearchTerms;
+    }
+
+    public void setDecisionMakerSearchTerms(List<String> decisionMakerSearchTerms) {
+        this.decisionMakerSearchTerms = decisionMakerSearchTerms;
+    }
+
+    public List<String> getTagSearchTerms() {
+        return tagSearchTerms;
+    }
+
+    public void setTagSearchTerms(List<String> tagSearchTerms) {
+        this.tagSearchTerms = tagSearchTerms;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("SearchDecisionResultViewModel{");
@@ -81,7 +101,10 @@ public class SearchDecisionResultViewModel {
         sb.append(", tags=").append(tags);
         sb.append(", linkedMeetingTitle='").append(linkedMeetingTitle).append('\'');
         sb.append(", linkedMeetingId=").append(linkedMeetingId);
+        sb.append(", decisionMakerSearchTerms=").append(decisionMakerSearchTerms);
+        sb.append(", tagSearchTerms=").append(tagSearchTerms);
         sb.append('}');
         return sb.toString();
     }
 }
+

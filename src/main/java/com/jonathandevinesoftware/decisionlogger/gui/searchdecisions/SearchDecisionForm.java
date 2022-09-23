@@ -123,4 +123,12 @@ public class SearchDecisionForm extends BaseForm {
         revalidate();
     }
 
+    @Override
+    protected LayoutManager setupLayout() {
+        FlowLayout layout = new FlowLayout();
+        layout.setHgap(1);
+        layout.setVgap(1);
+        return layout;
+    }
 }
+

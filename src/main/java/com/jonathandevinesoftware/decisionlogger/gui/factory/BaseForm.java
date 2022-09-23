@@ -11,7 +11,7 @@ public abstract class BaseForm extends JFrame {
     public BaseForm(String title) {
         super(title);
 
-        getContentPane().setLayout(new FlowLayout());
+        getContentPane().setLayout(setupLayout());
 
         init();
         pack();
@@ -32,6 +32,10 @@ public abstract class BaseForm extends JFrame {
                 closeOperation();
             }
         });
+    }
+
+    protected LayoutManager setupLayout() {
+        return new FlowLayout();
     }
 
     protected abstract void init();
