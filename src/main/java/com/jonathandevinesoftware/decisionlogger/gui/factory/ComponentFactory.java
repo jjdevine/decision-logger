@@ -6,8 +6,6 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class ComponentFactory {
 
@@ -19,6 +17,10 @@ public class ComponentFactory {
         return new Font("Arial", Font.BOLD, size);
     }
 
+    public static Font getItalicFont(int size) {
+        return new Font("Arial", Font.ITALIC, size);
+    }
+
     public static JButton createJButton(String title, Dimension d) {
         JButton button = new JButton(title);
         button.setPreferredSize(d);
@@ -28,7 +30,11 @@ public class ComponentFactory {
     public static JButton createJButton(String title, Dimension d, Runnable onClick) {
         JButton button = new JButton(title);
         button.setPreferredSize(d);
-        button.addActionListener(e -> onClick.run());
+        if(onClick == null) {
+            button.setEnabled(false);
+        } else {
+            button.addActionListener(e -> onClick.run());
+        }
         return button;
     }
 
@@ -104,4 +110,12 @@ public class ComponentFactory {
         return new JList<>();
     }
 
+    public static FlowLayout getFlowLayoutWithMargin(int horizontal, int vertical) {
+        FlowLayout layout = new FlowLayout();
+        layout.setHgap(horizontal);
+        layout.setVgap(vertical);
+        return layout;
+    }
+
 }
+

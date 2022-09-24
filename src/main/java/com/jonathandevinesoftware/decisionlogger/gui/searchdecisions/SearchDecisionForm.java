@@ -26,8 +26,14 @@ public class SearchDecisionForm extends BaseForm {
 
     private static Dimension dimExpandedFilters = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 390);
     private static Dimension dimCollapsedFilters = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 40);
+    private static Dimension dimExpandedScrollPane = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 790);
+    private static Dimension dimCollapsedScrollPane = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 440);
     private boolean filtersExpanded = true;
-    private JPanel panelFilters;
+    private JPanel panelFilters, panelSearchResults;
+
+    private int searchResultsDisplayed = 0;
+
+    private JScrollPane jspSearchResults;
 
     public SearchDecisionForm() {
         super("Search Decisions");
@@ -35,7 +41,7 @@ public class SearchDecisionForm extends BaseForm {
 
     @Override
     protected void init() {
-        setPreferredSize(new Dimension(GuiConstants.DEFAULT_FORM_WIDTH, 900));
+        setPreferredSize(new Dimension(GuiConstants.DEFAULT_FORM_WIDTH, 960));
         JPanel headerPanel = ComponentFactory.createHeaderPanel(
                 "Search Decisions",
                 new Dimension(
@@ -67,6 +73,13 @@ public class SearchDecisionForm extends BaseForm {
         bCollapse = ComponentFactory.createJButton("Collapse", dimButton, this::toggleCollapseExpand);
         panelFilters.add(bSearch);
         panelFilters.add(bCollapse);
+
+        panelSearchResults = ComponentFactory.createJPanel();
+        panelSearchResults.setLayout(ComponentFactory.getFlowLayoutWithMargin(0,1));
+        jspSearchResults = ComponentFactory.createJScrollPane(panelSearchResults);
+        jspSearchResults.setPreferredSize(dimCollapsedScrollPane);
+
+        add(jspSearchResults);
     }
 
     private Optional<BiConsumer<java.util.List<UUID>, java.util.List<UUID>>> searchCallback
@@ -103,6 +116,7 @@ public class SearchDecisionForm extends BaseForm {
             panelFilters.remove(vsTags);
             panelFilters.setPreferredSize(dimCollapsedFilters);
             bCollapse.setText("Expand");
+            jspSearchResults.setPreferredSize(dimExpandedScrollPane);
             filtersExpanded = false;
         } else {
             panelFilters.remove(bSearch);
@@ -113,14 +127,29 @@ public class SearchDecisionForm extends BaseForm {
             panelFilters.add(bCollapse);
             bCollapse.setText("Collapse");
             panelFilters.setPreferredSize(dimExpandedFilters);
+            jspSearchResults.setPreferredSize(dimCollapsedScrollPane);
             filtersExpanded = true;
         }
         revalidate();
     }
 
     public void addSearchResult(SearchDecisionResultViewModel viewModel) {
-        add(SearchDecisionResultPanel.buildSearchDecisionResultPanel(viewModel));
+        panelSearchResults.add(
+                SearchDecisionResultPanel.buildSearchDecisionResultPanel(
+                        viewModel,
+                        null,
+                        null));
+        panelSearchResults.setPreferredSize(new Dimension(
+                GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH,
+                (searchResultsDisplayed * 41) + 2));
+        jspSearchResults.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        //TODO  - fix scrolling
         revalidate();
+    }
+
+    public void clearSearchResults() {
+        //TODO - implement this and put search results in a scrollpane
     }
 
     @Override
