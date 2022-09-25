@@ -1,5 +1,7 @@
 package com.jonathandevinesoftware.decisionlogger.gui.factory;
 
+import com.jonathandevinesoftware.decisionlogger.core.Application;
+import com.jonathandevinesoftware.decisionlogger.gui.common.SearchResultJPanel;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 
 import javax.swing.*;
@@ -69,7 +71,7 @@ public class ComponentFactory {
         JPanel panel = new JPanel();
         if(GuiConstants.DEBUG) {
             panel.setBorder(new LineBorder(Color.RED));
-            System.out.println("border is red");
+            Application.debug("border is red");
         }
         return panel;
     }
@@ -115,6 +117,10 @@ public class ComponentFactory {
         layout.setHgap(horizontal);
         layout.setVgap(vertical);
         return layout;
+    }
+
+    public static SearchResultJPanel getSearchResultJPanel() {
+        return new SearchResultJPanel();
     }
 
 }

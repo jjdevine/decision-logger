@@ -24,7 +24,11 @@ public class SearchDecisionController {
     private void onSearch(List<UUID> decisionMakers, List<UUID> tags) {
         try {
             List<Decision> decisionList = DecisionDAO.getInstance().queryDecisions(decisionMakers, tags);
-            decisionList.forEach(d -> searchDecisionForm.addSearchResult(buildSearchResultViewModel(d, decisionMakers, tags)));
+            List<SearchDecisionResultViewModel> viewModels =
+                    decisionList.stream()
+                            .map(d -> buildSearchResultViewModel(d, decisionMakers, tags))
+                            .collect(Collectors.toList());
+            searchDecisionForm.setSearchResults(viewModels);
         } catch (SQLException e) {
             Application.log(e);
         }

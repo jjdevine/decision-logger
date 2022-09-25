@@ -1,5 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.gui.searchdecisions;
 
+import com.jonathandevinesoftware.decisionlogger.gui.common.SearchResultJPanel;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
@@ -29,7 +30,8 @@ public class SearchDecisionForm extends BaseForm {
     private static Dimension dimExpandedScrollPane = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 790);
     private static Dimension dimCollapsedScrollPane = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 440);
     private boolean filtersExpanded = true;
-    private JPanel panelFilters, panelSearchResults;
+    private JPanel panelFilters;
+    private SearchResultJPanel panelSearchResults;
 
     private int searchResultsDisplayed = 0;
 
@@ -74,8 +76,7 @@ public class SearchDecisionForm extends BaseForm {
         panelFilters.add(bSearch);
         panelFilters.add(bCollapse);
 
-        panelSearchResults = ComponentFactory.createJPanel();
-        panelSearchResults.setLayout(ComponentFactory.getFlowLayoutWithMargin(0,1));
+        panelSearchResults = ComponentFactory.getSearchResultJPanel();
         jspSearchResults = ComponentFactory.createJScrollPane(panelSearchResults);
         jspSearchResults.setPreferredSize(dimCollapsedScrollPane);
 
@@ -133,18 +134,15 @@ public class SearchDecisionForm extends BaseForm {
         revalidate();
     }
 
-    public void addSearchResult(SearchDecisionResultViewModel viewModel) {
-        panelSearchResults.add(
-                SearchDecisionResultPanel.buildSearchDecisionResultPanel(
-                        viewModel,
-                        null,
-                        null));
-        panelSearchResults.setPreferredSize(new Dimension(
-                GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH,
-                (searchResultsDisplayed * 41) + 2));
-        jspSearchResults.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-
-        //TODO  - fix scrolling
+    public void setSearchResults(java.util.List<SearchDecisionResultViewModel> viewModels) {
+        panelSearchResults.clear();
+        for(SearchDecisionResultViewModel viewModel: viewModels) {
+            panelSearchResults.addSearchResult(
+                    SearchDecisionResultPanel.buildSearchDecisionResultPanel(
+                            viewModel,
+                            null,
+                            null));
+        }
         revalidate();
     }
 
