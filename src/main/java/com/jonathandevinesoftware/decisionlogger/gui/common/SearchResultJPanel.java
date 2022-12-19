@@ -3,11 +3,10 @@ package com.jonathandevinesoftware.decisionlogger.gui.common;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class SearchResultJPanel extends JPanel {
 
-    private SpringLayout sLayout = new SpringLayout();
+    private SpringLayout sLayout;
     private java.util.List<Component> displayedComponents = new ArrayList<>();
     
     private int panelHeight = 0;
@@ -34,10 +33,10 @@ public class SearchResultJPanel extends JPanel {
     }
 
     public void clear() {
-        //TODO - this doesn't work
         displayedComponents.forEach(this::remove);
         displayedComponents.clear();
         panelHeight = 0;
+        repaint();
         revalidate();
     }
 }

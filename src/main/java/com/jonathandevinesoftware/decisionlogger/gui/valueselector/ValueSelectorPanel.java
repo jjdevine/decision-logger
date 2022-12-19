@@ -1,7 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.gui.valueselector;
 
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
-import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.JListDoubleClickHandler;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.JTextFieldChangeHandler;
@@ -20,8 +19,12 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
     private JTextField tfAddValue;
     private JPanel valueInputPanel;
     private JPanel bAddPanel;
+
+    private JPanel removePanel;
     private JButton bAdd;
     private JButton bRemove;
+
+    private JButton bRemoveAll;
     private JScrollPane jspSuggestions;
     private JScrollPane jspSelections;
     private JList<String> lSuggestions;
@@ -40,8 +43,9 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
 
         int valueInputPanelWidth = width/2 + 70;
         int panelAddWidth = width/2 - 90;
-        int bWidth = panelAddWidth - 10;
+        int bWidth = panelAddWidth - 15;
         int firstRowHeight = 60;
+        int removePanelWidth = bWidth + 4;
 
         valueInputPanel = ComponentFactory.createJPanel();
         valueInputPanel.setPreferredSize(new Dimension(valueInputPanelWidth,firstRowHeight));
@@ -89,13 +93,24 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
 
         selectedItems = new ArrayList<>();
 
+        removePanel = ComponentFactory.createJPanelWithMargin(3,1);
+        removePanel.setPreferredSize(new Dimension(removePanelWidth, 100));
+
         bRemove = ComponentFactory.createJButton(
                 "Remove",
-                new Dimension(bWidth, 100));
+                new Dimension(bWidth, 45));
         bRemove.addActionListener(this);
 
+        bRemoveAll = ComponentFactory.createJButton(
+                "Remove All",
+                new Dimension(bWidth, 45));
+        bRemoveAll.addActionListener(this);
+
+        removePanel.add(bRemove);
+        removePanel.add(bRemoveAll);
+
         panelSelections.add(jspSelections);
-        panelSelections.add(bRemove);
+        panelSelections.add(removePanel);
 
         init();
     }
@@ -120,6 +135,9 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
         GuiUtils.setJListValues(lSuggestions, values);
     }
 
+
+    //TODO - search logic should use AND
+
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -133,6 +151,10 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
                 refreshSuggestions();
                 refreshSelectedItemView();
             }
+        } else if(e.getSource() == bRemoveAll) {
+            selectedItems.clear();
+            refreshSuggestions();
+            refreshSelectedItemView();
         }
     }
 

@@ -72,12 +72,11 @@ public class TagDAO {
                 .collect(Collectors.toList());
     }
 
-    public Tag getTagWithValue(String value) {
+    public Optional<Tag> getTagWithValue(String value) {
         return cache
                 .stream()
                 .filter(t -> t.getValue().toUpperCase().equals(value.toUpperCase()))
-                .findFirst()
-                .get();
+                .findFirst();
     }
 
     public Optional<Tag> getTagWithId(UUID id) {

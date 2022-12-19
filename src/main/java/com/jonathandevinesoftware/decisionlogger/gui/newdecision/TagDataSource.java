@@ -10,6 +10,7 @@ import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDA
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TagDataSource implements ReferenceDataSource {
@@ -39,7 +40,12 @@ public class TagDataSource implements ReferenceDataSource {
     @Override
     public ReferenceData getExactValue(String value) {
         try {
-            return TagDAO.getInstance().getTagWithValue(value);
+            Optional<Tag> tag =  TagDAO.getInstance().getTagWithValue(value);
+            if(tag.isEmpty()) {
+                return null;
+            } else {
+                return tag.get();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

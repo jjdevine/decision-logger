@@ -85,12 +85,11 @@ public class PersonDAO {
     }
 
 
-    public Person getPersonWithName(String name) {
+    public Optional<Person> getPersonWithName(String name) {
         return cache
                 .stream()
                 .filter(p -> p.getValue().toUpperCase().equals(name.toUpperCase()))
-                .findFirst()
-                .get();
+                .findFirst();
     }
 }
 

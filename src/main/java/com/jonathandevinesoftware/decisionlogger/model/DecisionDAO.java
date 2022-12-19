@@ -248,7 +248,7 @@ public class DecisionDAO {
             INNER JOIN Decision_DecisionMaker dm on dm.DecisionId = d.Id
             INNER JOIN Decision_Tag t on t.DecisionId = d.Id
             WHERE dm.id IN (?, ?)
-            OR t.id IN (?, ?)
+            AND t.id IN (?, ?)
 
         But if either list is empty, the join and associated filter needs to be removed or there will be no results
          */
@@ -269,7 +269,7 @@ public class DecisionDAO {
                     .replace("DM_PLACEHOLDERS", placeholders(decisionMakerIds.size())));
         }
         if(!tagsEmpty) {
-            String filterClause = decisionMakersEmpty ? "WHERE" : "OR";
+            String filterClause = decisionMakersEmpty ? "WHERE" : "AND";
             sql.append(filterClause + " t.TagId IN (T_PLACEHOLDERS)\n "
                     .replace("T_PLACEHOLDERS", placeholders(tagIds.size())));
         }

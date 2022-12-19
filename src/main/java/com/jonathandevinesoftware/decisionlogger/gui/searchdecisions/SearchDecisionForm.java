@@ -33,8 +33,6 @@ public class SearchDecisionForm extends BaseForm {
     private JPanel panelFilters;
     private SearchResultJPanel panelSearchResults;
 
-    private int searchResultsDisplayed = 0;
-
     private JScrollPane jspSearchResults;
 
     public SearchDecisionForm() {
@@ -108,7 +106,6 @@ public class SearchDecisionForm extends BaseForm {
     public void closeOperation() {
         dispose();
         MainMenuController.getInstance().displayMainMenu();
-        System.exit(0);
     }
 
     private void toggleCollapseExpand() {
@@ -144,10 +141,6 @@ public class SearchDecisionForm extends BaseForm {
                             null));
         }
         revalidate();
-    }
-
-    public void clearSearchResults() {
-        //TODO - implement this and put search results in a scrollpane
     }
 
     @Override
