@@ -15,6 +15,7 @@ import java.awt.*;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class SearchDecisionForm extends BaseForm {
@@ -137,7 +138,7 @@ public class SearchDecisionForm extends BaseForm {
             panelSearchResults.addSearchResult(
                     SearchDecisionResultPanel.buildSearchDecisionResultPanel(
                             viewModel,
-                            null,
+                            () -> openDecisionConsumer.accept(viewModel.getDecisionId()),
                             null));
         }
         revalidate();
@@ -149,6 +150,12 @@ public class SearchDecisionForm extends BaseForm {
         layout.setHgap(1);
         layout.setVgap(1);
         return layout;
+    }
+
+    private Consumer<UUID> openDecisionConsumer = null;
+
+    public void setOpenDecisionConsumer(Consumer<UUID> openDecisionConsumer) {
+        this.openDecisionConsumer = openDecisionConsumer;
     }
 }
 

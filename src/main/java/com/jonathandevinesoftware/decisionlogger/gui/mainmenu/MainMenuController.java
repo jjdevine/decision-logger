@@ -1,6 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.gui.mainmenu;
 
-import com.jonathandevinesoftware.decisionlogger.gui.newdecision.NewDecisionController;
+import com.jonathandevinesoftware.decisionlogger.gui.newdecision.DecisionEditorController;
 import com.jonathandevinesoftware.decisionlogger.gui.searchdecisions.SearchDecisionController;
 
 public class MainMenuController {
@@ -26,7 +26,7 @@ public class MainMenuController {
 
     public void onNewAdHocDecision() {
         closeMainMenu();
-        new NewDecisionController();
+        new DecisionEditorController(null);
     }
 
     public void onNewMeeting() {

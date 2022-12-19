@@ -4,25 +4,46 @@ import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
+import com.jonathandevinesoftware.decisionlogger.model.Decision;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class NewDecisionForm extends BaseForm {
+public class DecisionEditorForm extends BaseForm {
 
     private DecisionPanel decisionPanel;
 
-    public NewDecisionForm() {
-        super("New Decision");
+    private Decision decision;
+
+    private JPanel headerPanel;
+
+    enum Mode {NEW, EDIT}
+
+    private Mode mode;
+
+    public DecisionEditorForm(Decision decision) {
+        super(decision == null ? "New Decision" : "Edit Decision");
+        this.decision = decision;
+
+        if(decision == null) {
+            //create new decision
+            setHeaderPanelText("New Decision");
+            mode = Mode.NEW;
+        } else {
+            //edit existing decision
+            setHeaderPanelText("Edit Decision");
+            mode = Mode.EDIT;
+            decisionPanel.setDecision(decision);
+        }
     }
 
     @Override
     protected void init() {
         setPreferredSize(new Dimension(GuiConstants.DEFAULT_FORM_WIDTH, 660));
-        JPanel headerPanel = ComponentFactory.createHeaderPanel(
-                "New Decision",
+        headerPanel = ComponentFactory.createHeaderPanel(
+                "",
                 new Dimension(
                         GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH,
                         GuiConstants.DEFAULT_HEADER_HEIGHT));
@@ -32,6 +53,10 @@ public class NewDecisionForm extends BaseForm {
         decisionPanel.setSaveCallback(this::onSave);
         decisionPanel.setCancelCallback(this::onCancel);
         add(decisionPanel);
+    }
+
+    private void setHeaderPanelText(String text) {
+        ((JLabel)headerPanel.getComponent(0)).setText(text);
     }
 
     private Optional<Consumer<DecisionPanel.ViewModel>> saveCallback = Optional.empty();
@@ -56,7 +81,6 @@ public class NewDecisionForm extends BaseForm {
 
     @Override
     public void closeOperation() {
-        dispose();
-        MainMenuController.getInstance().displayMainMenu();
+        cancelCallback.ifPresent(Runnable::run);
     }
 }

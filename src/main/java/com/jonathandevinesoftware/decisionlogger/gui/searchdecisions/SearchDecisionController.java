@@ -1,6 +1,7 @@
 package com.jonathandevinesoftware.decisionlogger.gui.searchdecisions;
 
 import com.jonathandevinesoftware.decisionlogger.core.Application;
+import com.jonathandevinesoftware.decisionlogger.gui.newdecision.DecisionEditorController;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
@@ -19,6 +20,7 @@ public class SearchDecisionController {
     public SearchDecisionController() {
         searchDecisionForm = new SearchDecisionForm();
         searchDecisionForm.setSearchCallback(this::onSearch);
+        searchDecisionForm.setOpenDecisionConsumer(this::openDecision);
     }
 
     private void onSearch(List<UUID> decisionMakers, List<UUID> tags) {
@@ -80,5 +82,16 @@ public class SearchDecisionController {
         System.out.println(viewModel);
 
         return viewModel;
+    }
+
+    private void openDecision(UUID decisionId) {
+        System.out.println("Open decision " + decisionId);
+        try {
+            Decision decision = DecisionDAO.getInstance().loadDecision(decisionId);
+            new DecisionEditorController(decision).setOpenMainMenuOnClose(false);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        //TODO this
     }
 }

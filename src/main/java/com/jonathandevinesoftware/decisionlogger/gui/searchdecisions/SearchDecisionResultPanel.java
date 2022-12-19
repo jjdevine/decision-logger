@@ -23,7 +23,6 @@ public class SearchDecisionResultPanel {
         int readInfoWidth = (int)(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH*0.8);
         int buttonsWidth = (int)(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH*0.19);
         int layoutPanelHeight = 38;
-        //TODO: read and buttons panels
 
         JPanel panelReadInfo = ComponentFactory.createJPanelWithMargin(0,0);
         panelReadInfo.setPreferredSize(new Dimension(readInfoWidth, layoutPanelHeight));

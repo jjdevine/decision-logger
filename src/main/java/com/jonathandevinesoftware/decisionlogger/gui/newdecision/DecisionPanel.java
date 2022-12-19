@@ -3,6 +3,7 @@ package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
+import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
 
@@ -168,5 +169,10 @@ public class DecisionPanel extends JPanel implements ActionListener {
         public void setTags(List<Tag> tags) {
             this.tags = tags;
         }
+    }
+
+    public void setDecision(Decision decision) {
+        taDecision.setText(decision.getDecisionText());
+        //TODO - prepopulate tags and decision makers
     }
 }

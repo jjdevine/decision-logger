@@ -13,14 +13,20 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class NewDecisionController {
+public class DecisionEditorController {
 
-    private NewDecisionForm form;
+    private DecisionEditorForm form;
 
-    public NewDecisionController() {
-        form = new NewDecisionForm();
+    private boolean openMainMenuOnClose = true;
+
+    public DecisionEditorController(Decision decision) {
+        form = new DecisionEditorForm(decision);
         form.setSaveCallback(this::onSave);
         form.setCancelCallback(this::onCancel);
+    }
+
+    public void setOpenMainMenuOnClose(boolean openMainMenuOnClose) {
+        this.openMainMenuOnClose = openMainMenuOnClose;
     }
 
     public void onSave(DecisionPanel.ViewModel viewModel) {
@@ -57,8 +63,11 @@ public class NewDecisionController {
     }
 
     private void closeForm() {
+        System.out.println("Closing form");
         form.dispose();
         form = null;
-        MainMenuController.getInstance().displayMainMenu();
+        if(openMainMenuOnClose) {
+            MainMenuController.getInstance().displayMainMenu();
+        }
     }
 }
