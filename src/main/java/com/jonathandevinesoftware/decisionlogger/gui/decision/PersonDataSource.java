@@ -1,4 +1,4 @@
-package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
+package com.jonathandevinesoftware.decisionlogger.gui.decision;
 
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ReferenceDataSource;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
@@ -56,6 +56,16 @@ public class PersonDataSource implements ReferenceDataSource {
     @Override
     public ReferenceData constructInstance(UUID id, String value) {
         return new Person(id, value);
+    }
+
+    @Override
+    public Optional<? extends ReferenceData> getById(UUID id) {
+        try {
+            return PersonDAO.getInstance().getPersonWithId(id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     public static PersonDataSource getInstance() {

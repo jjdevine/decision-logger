@@ -1,8 +1,7 @@
-package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
+package com.jonathandevinesoftware.decisionlogger.gui.decision;
 
 import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
-import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 

@@ -1,4 +1,4 @@
-package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
+package com.jonathandevinesoftware.decisionlogger.gui.decision;
 
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
@@ -25,6 +25,8 @@ public class DecisionPanel extends JPanel implements ActionListener {
     private ValueSelectorPanel vsDecisionMakers;
     private ValueSelectorPanel vsTags;
     private JButton bSave, bCancel;
+    private String cancelMessage = "Close without saving?";
+    private String cancelTitle = "Cancel Decision?";
 
     public DecisionPanel() {
 
@@ -77,8 +79,8 @@ public class DecisionPanel extends JPanel implements ActionListener {
         } else if(e.getSource() == bCancel) {
             int choice = JOptionPane.showConfirmDialog(
                     this,
-                    "Close without saving?",
-                    "Cancel Decision?",
+                    cancelMessage,
+                    cancelTitle,
                     JOptionPane.OK_CANCEL_OPTION);
             if(choice == JOptionPane.OK_OPTION) {
                 cancelCallback.ifPresent(Runnable::run);
@@ -173,6 +175,11 @@ public class DecisionPanel extends JPanel implements ActionListener {
 
     public void setDecision(Decision decision) {
         taDecision.setText(decision.getDecisionText());
-        //TODO - prepopulate tags and decision makers
+        decision.getTags().forEach(tag -> vsTags.setSelectedValue(tag));
+        decision.getDecisionMakers().forEach(tag -> vsDecisionMakers.setSelectedValue(tag));
+        bCancel.setText("Delete Decision");
+        bCancel.setForeground(Color.RED);
+        cancelMessage = "Really delete this decision?";
+        cancelTitle = "Delete Decision?";
     }
 }

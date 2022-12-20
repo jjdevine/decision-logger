@@ -1,7 +1,7 @@
 package com.jonathandevinesoftware.decisionlogger.gui.searchdecisions;
 
 import com.jonathandevinesoftware.decisionlogger.core.Application;
-import com.jonathandevinesoftware.decisionlogger.gui.newdecision.DecisionEditorController;
+import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionEditorController;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;

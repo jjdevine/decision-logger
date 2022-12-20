@@ -3,6 +3,7 @@ package com.jonathandevinesoftware.decisionlogger.gui.valueselector;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceData;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ReferenceDataSource {
@@ -14,4 +15,6 @@ public interface ReferenceDataSource {
     ReferenceData getExactValue(String value);
 
     ReferenceData constructInstance(UUID id, String value);
+
+    Optional<? extends ReferenceData> getById(UUID id);
 }

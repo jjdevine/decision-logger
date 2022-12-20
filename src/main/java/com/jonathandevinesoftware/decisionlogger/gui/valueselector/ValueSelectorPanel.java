@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -135,8 +136,17 @@ public class ValueSelectorPanel extends JPanel implements JTextFieldChangeHandle
         GuiUtils.setJListValues(lSuggestions, values);
     }
 
+    public void setSelectedValue(UUID valueId) {
 
-    //TODO - search logic should use AND
+        Optional<? extends ReferenceData> selectedValue = dataSource.getById(valueId);
+        if(selectedValue.isPresent()) {
+            selectedItems.add(selectedValue.get());
+            refreshSelectedItemView();
+            refreshSuggestions();
+        } else {
+            System.out.println("Could not find reference data for " + valueId);
+        }
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {

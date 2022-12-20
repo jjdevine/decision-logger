@@ -12,9 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,7 +30,38 @@ public class DecisionDAO {
         return instance;
     }
 
-    public void saveDecision(Decision decision) throws SQLException {
+    public void saveOrUpdateDecision(Decision decision) throws SQLException {
+        //delete and re-create
+        deleteDecision(decision.getId());
+        saveDecision(decision);
+    }
+
+    public void deleteDecision(UUID decisionId) throws SQLException {
+        System.out.println("Deleting decision with id " + decisionId);
+        Connection conn = Database.getConnection();
+
+        PreparedStatement ps = conn.prepareStatement(
+                "DELETE FROM Decision_DecisionMaker WHERE DecisionId = ?");
+        ps.setString(1, decisionId.toString());
+        ps.execute();
+        ps.close();
+
+        ps = conn.prepareStatement(
+                "DELETE FROM Decision_Tag WHERE DecisionId = ?");
+        ps.setString(1, decisionId.toString());
+        ps.execute();
+        ps.close();
+
+        ps = conn.prepareStatement(
+                "DELETE FROM Decision WHERE Id = ?");
+        ps.setString(1, decisionId.toString());
+        ps.execute();
+        ps.close();
+
+        conn.close();
+    }
+
+    private void saveDecision(Decision decision) throws SQLException {
         Connection conn = Database.getConnection();
 
         PreparedStatement ps = conn.prepareStatement(

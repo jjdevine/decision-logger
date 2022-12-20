@@ -1,8 +1,6 @@
-package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
+package com.jonathandevinesoftware.decisionlogger.gui.decision;
 
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ReferenceDataSource;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceData;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDAO;
@@ -56,6 +54,17 @@ public class TagDataSource implements ReferenceDataSource {
     public ReferenceData constructInstance(UUID id, String value) {
         return new Tag(id, value);
     }
+
+    @Override
+    public Optional<? extends ReferenceData> getById(UUID id) {
+        try {
+            return TagDAO.getInstance().getTagWithId(id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
+
     public static TagDataSource getInstance() {
         if (instance == null) {
             instance = new TagDataSource();

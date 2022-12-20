@@ -1,4 +1,4 @@
-package com.jonathandevinesoftware.decisionlogger.gui.newdecision;
+package com.jonathandevinesoftware.decisionlogger.gui.decision;
 
 import com.jonathandevinesoftware.decisionlogger.core.ApplicationConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
@@ -19,7 +19,10 @@ public class DecisionEditorController {
 
     private boolean openMainMenuOnClose = true;
 
+    private Decision decision;
+
     public DecisionEditorController(Decision decision) {
+        this.decision = decision;
         form = new DecisionEditorForm(decision);
         form.setSaveCallback(this::onSave);
         form.setCancelCallback(this::onCancel);
@@ -31,17 +34,25 @@ public class DecisionEditorController {
 
     public void onSave(DecisionPanel.ViewModel viewModel) {
 
-        Decision decision = new Decision(UUID.randomUUID());
-        decision.setDecisionText(viewModel.getDecision());
-        decision.setTimestamp(LocalDateTime.now());
-        decision.setDecisionMakers(
+        boolean isNewDecision = decision == null;
+        Decision decisionToPersist;
+        //is this a save or update?
+        if(!isNewDecision) {
+            decisionToPersist = new Decision(decision.getId());
+        } else {
+            decisionToPersist = new Decision(UUID.randomUUID());
+        }
+
+        decisionToPersist.setDecisionText(viewModel.getDecision());
+        decisionToPersist.setTimestamp(LocalDateTime.now());
+        decisionToPersist.setDecisionMakers(
                 viewModel.getDecisionMakers().stream().map(Person::getId).collect(Collectors.toList()));
-        decision.setTags(
+        decisionToPersist.setTags(
                 viewModel.getTags().stream().map(Tag::getId).collect(Collectors.toList()));
 
         try {
             System.out.println("saving...");
-            DecisionDAO.getInstance().saveDecision(decision);
+            DecisionDAO.getInstance().saveOrUpdateDecision(decisionToPersist);
 
             if(ApplicationConstants.DEBUG) {
                 System.out.println("loading...");
@@ -59,6 +70,16 @@ public class DecisionEditorController {
     }
 
     public void onCancel() {
+        //if editing a decision, treat as a deletion
+        if(decision != null) {
+            try {
+                DecisionDAO.getInstance().deleteDecision(decision.getId());
+            } catch (SQLException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(form, "Could not delete! " + e.getMessage());
+                return;
+            }
+        }
         closeForm();
     }
 
