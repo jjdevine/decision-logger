@@ -15,6 +15,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ public class DecisionPanel extends JPanel implements ActionListener {
     private JButton bSave, bCancel;
     private String cancelMessage = "Close without saving?";
     private String cancelTitle = "Cancel Decision?";
+    private Decision decision;
 
     public DecisionPanel() {
 
@@ -127,6 +129,9 @@ public class DecisionPanel extends JPanel implements ActionListener {
 
     private ViewModel buildViewModel() {
         ViewModel viewModel = new ViewModel();
+        if(decision != null) {
+            viewModel.setDecisionId(decision.getId());
+        }
         viewModel.setDecision(taDecision.getText().trim());
 
         List<Person> decisionMakers = new ArrayList<>();
@@ -143,6 +148,7 @@ public class DecisionPanel extends JPanel implements ActionListener {
     }
 
     public void setDecision(Decision decision) {
+        this.decision = decision;
         taDecision.setText(decision.getDecisionText());
         decision.getTags().forEach(tag -> vsTags.setSelectedValue(tag));
         decision.getDecisionMakers().forEach(tag -> vsDecisionMakers.setSelectedValue(tag));
@@ -154,9 +160,20 @@ public class DecisionPanel extends JPanel implements ActionListener {
 
 
     public class ViewModel {
+
+        UUID decisionId;
         String decision;
         java.util.List<Person> decisionMakers;
         java.util.List<Tag> tags;
+
+        public UUID getDecisionId() {
+            return decisionId;
+        }
+
+        public ViewModel setDecisionId(UUID decisionId) {
+            this.decisionId = decisionId;
+            return this;
+        }
 
         public String getDecision() {
             return decision;

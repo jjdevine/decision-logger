@@ -7,4 +7,5 @@ public class MeetingEditorController {
     public MeetingEditorController() {
         form = new MeetingEditorForm("New Meeting");
     }
+
 }

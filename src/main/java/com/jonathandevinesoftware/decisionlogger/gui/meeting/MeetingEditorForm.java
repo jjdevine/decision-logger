@@ -3,6 +3,7 @@ package com.jonathandevinesoftware.decisionlogger.gui.meeting;
 import com.github.lgooddatepicker.components.DatePickerSettings;
 import com.github.lgooddatepicker.components.DateTimePicker;
 import com.github.lgooddatepicker.components.TimePickerSettings;
+import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionEditorForm;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionPanel;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.PersonDataSource;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.TagDataSource;
@@ -21,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class MeetingEditorForm extends BaseForm {
@@ -47,6 +49,10 @@ public class MeetingEditorForm extends BaseForm {
     private DecisionPanel decisionPanel;
 
     private JScrollPane jspDecisions;
+
+    private Dimension dimJspLarge;
+    private Dimension dimJspSmall;
+
     private JPanel decisionsPanel;
 
     public MeetingEditorForm(String title) {
@@ -73,7 +79,6 @@ public class MeetingEditorForm extends BaseForm {
         meetingMetadataSummaryPanel.setBorder(ComponentFactory.createDefaultBorder());
         meetingMetadataSummaryPanel.setPreferredSize(new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 110));
         meetingMetadataSummaryPanel.add(ComponentFactory.createJLabel(""));
-        //TODO - populate metadata summary panel
 
         DatePickerSettings datePickerSettings = new DatePickerSettings();
         datePickerSettings.setAllowEmptyDates(false);
@@ -132,8 +137,11 @@ public class MeetingEditorForm extends BaseForm {
         add(bFinish);
         add(bCancelDelete);
 
+        dimJspLarge = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 660);
+        dimJspSmall = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 350);
+
         jspDecisions = ComponentFactory.createJScrollPane(decisionsPanel);
-        jspDecisions.setPreferredSize(new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 350));
+        jspDecisions.setPreferredSize(dimJspSmall);
         add(jspDecisions);
 
         bAddDecision = ComponentFactory.createJButton(
@@ -144,20 +152,35 @@ public class MeetingEditorForm extends BaseForm {
     }
 
     private void onAddDecision() {
+        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(null);
+        decisionEditorForm.setCancelCallback(decisionEditorForm::dispose);
+        decisionEditorForm.setSaveCallback(this::saveDecision);
+    }
 
+    private void saveDecision(DecisionPanel.ViewModel viewModel) {
+        Decision decision;
+        if(viewModel.getDecisionId() != null) {
+            decision = new Decision(viewModel.getDecisionId());
+        } else {
+            decision = new Decision(UUID.randomUUID());
+        }
+
+        //TODO convert to decision and save to meeting view model
     }
 
     private void toggleCollapse() {
-        if(meetingMetadataCollapsed) {
+        if(meetingMetadataCollapsed) { //need to expand
             remove(meetingMetadataSummaryPanel);
             bCollapse.setText("Collapse");
             meetingMetadataPanel.add(bCollapse);
+            jspDecisions.setPreferredSize(dimJspSmall);
             add(meetingMetadataPanel, 1);
-        } else {
+        } else { //need to collapse
             updateMetadataSummary();
             add(meetingMetadataSummaryPanel, 1);
             bCollapse.setText("Expand");
             meetingMetadataSummaryPanel.add(bCollapse);
+            jspDecisions.setPreferredSize(dimJspLarge);
             remove(meetingMetadataPanel);
         }
 
