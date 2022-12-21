@@ -142,6 +142,16 @@ public class DecisionPanel extends JPanel implements ActionListener {
         return viewModel;
     }
 
+    public void setDecision(Decision decision) {
+        taDecision.setText(decision.getDecisionText());
+        decision.getTags().forEach(tag -> vsTags.setSelectedValue(tag));
+        decision.getDecisionMakers().forEach(tag -> vsDecisionMakers.setSelectedValue(tag));
+        bCancel.setText("Delete Decision");
+        bCancel.setForeground(Color.RED);
+        cancelMessage = "Really delete this decision?";
+        cancelTitle = "Delete Decision?";
+    }
+
 
     public class ViewModel {
         String decision;
@@ -173,13 +183,4 @@ public class DecisionPanel extends JPanel implements ActionListener {
         }
     }
 
-    public void setDecision(Decision decision) {
-        taDecision.setText(decision.getDecisionText());
-        decision.getTags().forEach(tag -> vsTags.setSelectedValue(tag));
-        decision.getDecisionMakers().forEach(tag -> vsDecisionMakers.setSelectedValue(tag));
-        bCancel.setText("Delete Decision");
-        bCancel.setForeground(Color.RED);
-        cancelMessage = "Really delete this decision?";
-        cancelTitle = "Delete Decision?";
-    }
 }
