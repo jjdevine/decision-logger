@@ -2,18 +2,24 @@ package com.jonathandevinesoftware.decisionlogger.model;
 
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Meeting {
 
-    private int id;
+    private UUID id;
 
 
     private List<Person> attendees;
 
     private List<Decision> decisions;
 
-    public int getId() {
+    public Meeting(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getId() {
         return id;
     }
 
@@ -27,6 +33,9 @@ public class Meeting {
     }
 
     public List<Decision> getDecisions() {
+        if(decisions == null) {
+            decisions = new ArrayList<>();
+        }
         return decisions;
     }
 

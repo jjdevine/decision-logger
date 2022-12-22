@@ -41,6 +41,10 @@ public class ComponentFactory {
     }
 
     public static JPanel createHeaderPanel(String header, Dimension size) {
+        return createHeaderPanel(header, size, getHeaderFont(16));
+    }
+
+    public static JPanel createHeaderPanel(String header, Dimension size, Font font) {
         JPanel panel = createJPanel();
         panel.setPreferredSize(size);
         panel.setBorder(new LineBorder(Color.BLACK));
@@ -48,7 +52,7 @@ public class ComponentFactory {
         JLabel label = createJLabel(header);
         label.setPreferredSize(new Dimension(size.width-10, size.height-10));
         label.setHorizontalAlignment(JLabel.CENTER);
-        label.setFont(getHeaderFont(16));
+        label.setFont(font);
         panel.add(label);
         return panel;
     }

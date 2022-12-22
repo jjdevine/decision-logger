@@ -3,6 +3,7 @@ package com.jonathandevinesoftware.decisionlogger.gui.meeting;
 import com.github.lgooddatepicker.components.DatePickerSettings;
 import com.github.lgooddatepicker.components.DateTimePicker;
 import com.github.lgooddatepicker.components.TimePickerSettings;
+import com.jonathandevinesoftware.decisionlogger.gui.common.SearchResultJPanel;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionEditorForm;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionPanel;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.PersonDataSource;
@@ -12,16 +13,23 @@ import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
+import com.jonathandevinesoftware.decisionlogger.model.Meeting;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDAO;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -53,10 +61,15 @@ public class MeetingEditorForm extends BaseForm {
     private Dimension dimJspLarge;
     private Dimension dimJspSmall;
 
-    private JPanel decisionsPanel;
+    private SearchResultJPanel decisionsPanel;
 
-    public MeetingEditorForm(String title) {
+    private Meeting underlyingMeeting;
+
+    private Map<UUID, DecisionEditorForm> openDecisionEditors = new HashMap<>();
+
+    public MeetingEditorForm(String title, Meeting meeting) {
         super(title);
+        this.underlyingMeeting = meeting;
     }
 
     @Override
@@ -140,6 +153,7 @@ public class MeetingEditorForm extends BaseForm {
         dimJspLarge = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 660);
         dimJspSmall = new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 350);
 
+        decisionsPanel = ComponentFactory.getSearchResultJPanel();
         jspDecisions = ComponentFactory.createJScrollPane(decisionsPanel);
         jspDecisions.setPreferredSize(dimJspSmall);
         add(jspDecisions);
@@ -152,20 +166,113 @@ public class MeetingEditorForm extends BaseForm {
     }
 
     private void onAddDecision() {
-        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(null);
+        //prepopulate decision with decision makers/tags used by this meeting
+        Decision decision = new Decision(UUID.randomUUID());
+        MeetingViewModel viewModel = buildViewModel();
+        decision.setDecisionMakers(viewModel.attendees.stream().map(Person::getId).collect(Collectors.toList()));
+        decision.setTags(viewModel.tags.stream().map(Tag::getId).collect(Collectors.toList()));
+
+        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(decision);
+        openDecisionEditors.put(decision.getId(), decisionEditorForm);
         decisionEditorForm.setCancelCallback(decisionEditorForm::dispose);
         decisionEditorForm.setSaveCallback(this::saveDecision);
     }
 
     private void saveDecision(DecisionPanel.ViewModel viewModel) {
-        Decision decision;
-        if(viewModel.getDecisionId() != null) {
-            decision = new Decision(viewModel.getDecisionId());
-        } else {
-            decision = new Decision(UUID.randomUUID());
-        }
+        Decision decision = new Decision(viewModel.getDecisionId());
 
-        //TODO convert to decision and save to meeting view model
+        decision.setDecisionText(viewModel.getDecision());
+        decision.setTimestamp(LocalDateTime.now());
+        decision.setDecisionMakers(
+                viewModel.getDecisionMakers().stream().map(Person::getId).collect(Collectors.toList()));
+        decision.setTags(
+                viewModel.getTags().stream().map(Tag::getId).collect(Collectors.toList()));
+        decision.setLinkedMeeting(Optional.of(underlyingMeeting.getId()));
+
+        underlyingMeeting.getDecisions().add(decision);
+        refreshDecisionsDisplay();
+        openDecisionEditors.get(viewModel.getDecisionId()).dispose();
+        openDecisionEditors.remove(viewModel.getDecisionId());
+    }
+
+    private void refreshDecisionsDisplay() {
+
+        int panelWidth = GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH-10;
+        int panelHeight = 55;
+        int innerPanelHeight = panelHeight-4;
+        decisionsPanel.clear();
+
+        for(Decision decision: underlyingMeeting.getDecisions()) {
+
+            JPanel decisionSummaryPanel = ComponentFactory.createJPanelWithMargin(1,1);
+            decisionSummaryPanel.setPreferredSize(new Dimension(panelWidth, panelHeight));
+
+            StringBuilder summaryText = new StringBuilder();
+            summaryText.append("<html>");
+            summaryText.append("Decision: " + decision.getDecisionText());
+            summaryText.append("<br/>Decision Makers: " +
+                    decision.getDecisionMakers()
+                            .stream()
+                            .map(id -> getPersonName(id))
+                            .collect(Collectors.joining(", ")));
+            summaryText.append("<br/>Tags: " +
+                    decision.getTags()
+                            .stream()
+                            .map(id -> getTagName(id))
+                            .collect(Collectors.joining(", ")));
+            summaryText.append("</html>");
+
+            JPanel summaryTextPanel =
+                    ComponentFactory.createHeaderPanel(
+                            summaryText.toString(),
+                            new Dimension(panelWidth-100, innerPanelHeight),
+                            ComponentFactory.getStandardFont(12));
+
+            JButton bEdit = ComponentFactory.createJButton(
+                    "Edit",
+                    new Dimension(88, innerPanelHeight),
+                    () -> onEditDecision(decision.getId()));
+
+            decisionSummaryPanel.add(summaryTextPanel);
+            decisionSummaryPanel.add(bEdit);
+            decisionsPanel.addSearchResult(decisionSummaryPanel);
+        }
+       revalidate();
+
+    }
+
+    private void onEditDecision(UUID decisionId) {
+        System.out.println("Edit decision " + decisionId);
+        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(
+                underlyingMeeting.getDecisions().stream()
+                        .filter(d -> d.getId().equals(decisionId)).findFirst().get());
+        openDecisionEditors.put(decisionId, decisionEditorForm);
+        decisionEditorForm.setCancelCallback(() -> onCancelDecision(decisionId, decisionEditorForm));
+        decisionEditorForm.setSaveCallback(this::saveDecision);
+    }
+
+    private void onCancelDecision(UUID decisionId, DecisionEditorForm decisionEditorForm) {
+        decisionEditorForm.dispose();
+        underlyingMeeting.getDecisions().removeIf(d -> d.getId().equals(decisionId));
+        refreshDecisionsDisplay();
+    }
+
+    private String getPersonName(UUID id) {
+        try {
+            return PersonDAO.getInstance().getPersonWithId(id).get().getValue();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "ERROR";
+        }
+    }
+
+    private String getTagName(UUID id) {
+        try {
+            return TagDAO.getInstance().getTagWithId(id).get().getValue();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "ERROR";
+        }
     }
 
     private void toggleCollapse() {
@@ -183,8 +290,6 @@ public class MeetingEditorForm extends BaseForm {
             jspDecisions.setPreferredSize(dimJspLarge);
             remove(meetingMetadataPanel);
         }
-
-        //TODO - resize JScrollPane
 
         revalidate();
         repaint();
