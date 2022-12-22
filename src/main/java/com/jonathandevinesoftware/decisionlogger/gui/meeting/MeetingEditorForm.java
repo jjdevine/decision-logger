@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class MeetingEditorForm extends BaseForm {
@@ -238,7 +239,6 @@ public class MeetingEditorForm extends BaseForm {
             decisionsPanel.addSearchResult(decisionSummaryPanel);
         }
        revalidate();
-
     }
 
     private void onEditDecision(UUID decisionId) {
@@ -297,12 +297,35 @@ public class MeetingEditorForm extends BaseForm {
         meetingMetadataCollapsed = !meetingMetadataCollapsed;
     }
 
-    private void onFinish() {
+    private Consumer<MeetingViewModel> onFinishCallback;
+    private Consumer<MeetingViewModel> onCancelDeleteCallback;
 
+    public void setOnFinishCallback(Consumer<MeetingViewModel> onFinishCallback) {
+        this.onFinishCallback = onFinishCallback;
+    }
+
+    public void setOnCancelDeleteCallback(Consumer<MeetingViewModel> onCancelDeleteCallback) {
+        this.onCancelDeleteCallback = onCancelDeleteCallback;
+    }
+
+    private void onFinish() {
+        openDecisionEditors.clear();
+        onFinishCallback.accept(buildViewModel());
     }
 
     private void onCancelDelete() {
+        openDecisionEditors.clear();
+        onFinishCallback.accept(buildViewModel());
+    }
 
+    private void closeChildWindows() {
+        openDecisionEditors.keySet().forEach(uuid -> {
+            DecisionEditorForm decisionEditorForm = openDecisionEditors.get(uuid);
+            if(decisionEditorForm != null) {
+                decisionEditorForm.dispose();
+            }
+        });
+        openDecisionEditors.clear();
     }
 
     private void updateMetadataSummary() {
@@ -322,9 +345,37 @@ public class MeetingEditorForm extends BaseForm {
         summaryLabel.setText(summary.toString());
     }
 
+    public boolean validateInput() {
+        List<String> errors = new ArrayList<>();
+        if(meetingDateTimePicker.getDateTimePermissive() == null) {
+            errors.add("Must pick a meeting time!");
+        }
+
+        if(tfMeetingTitle.getText().trim().length() == 0) {
+            errors.add("Meeting needs a title!");
+        }
+
+        if(vsAttendees.getSelectedValues().size() <= 1) {
+            errors.add("Meetings need at least 2 attendees!");
+        }
+
+        if(vsTags.getSelectedValues().size() == 0) {
+            errors.add("Choose at least one tag for this meeting!");
+        }
+
+        if(errors.size() > 0) {
+            JOptionPane.showMessageDialog(this, "Validation errors: " +
+                    errors.stream().collect(Collectors.joining(" --- ")));
+            return false;
+        }
+
+        return true;
+    }
+
     private MeetingViewModel buildViewModel() {
         MeetingViewModel viewModel = new MeetingViewModel();
 
+        viewModel.setMeetingId(underlyingMeeting.getId());
         viewModel.setMeetingDateTime(meetingDateTimePicker.getDateTimeStrict());
         viewModel.setMeetingTitle(tfMeetingTitle.getText());
 
@@ -338,17 +389,30 @@ public class MeetingEditorForm extends BaseForm {
                 vsTags.getSelectedValues().stream().map(rd -> (Tag)rd).collect(Collectors.toList()));
         viewModel.setTags(tags);
 
+        viewModel.setDecisions(underlyingMeeting.getDecisions());
+
         System.out.println("buildViewModel() = " + viewModel);
 
         return viewModel;
     }
 
     public class MeetingViewModel {
+
+        UUID meetingId;
         LocalDateTime meetingDateTime;
         String meetingTitle;
         java.util.List<Person> attendees;
         java.util.List<Tag> tags;
         java.util.List<Decision> decisions;
+
+        public UUID getMeetingId() {
+            return meetingId;
+        }
+
+        public MeetingViewModel setMeetingId(UUID meetingId) {
+            this.meetingId = meetingId;
+            return this;
+        }
 
         public LocalDateTime getMeetingDateTime() {
             return meetingDateTime;
@@ -398,7 +462,8 @@ public class MeetingEditorForm extends BaseForm {
         @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder("MeetingViewModel{");
-            sb.append("meetingDateTime=").append(meetingDateTime);
+            sb.append("meetingId=").append(meetingId);
+            sb.append(", meetingDateTime=").append(meetingDateTime);
             sb.append(", meetingTitle='").append(meetingTitle).append('\'');
             sb.append(", attendees=").append(attendees);
             sb.append(", tags=").append(tags);
