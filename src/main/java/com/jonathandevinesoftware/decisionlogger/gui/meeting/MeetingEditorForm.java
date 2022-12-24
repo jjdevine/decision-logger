@@ -13,7 +13,9 @@ import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
+import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.model.Meeting;
+import com.jonathandevinesoftware.decisionlogger.model.MeetingDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
@@ -68,9 +70,18 @@ public class MeetingEditorForm extends BaseForm {
 
     private Map<UUID, DecisionEditorForm> openDecisionEditors = new HashMap<>();
 
+    private List<Decision> meetingDecisions;
+
     public MeetingEditorForm(String title, Meeting meeting) {
         super(title);
         this.underlyingMeeting = meeting;
+        if(meeting != null) {
+            try {
+                meetingDecisions = DecisionDAO.getInstance().loadDecisionsByLinkedMeetingId(meeting.getId());
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Could not load linked decisions - " + e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -189,8 +200,8 @@ public class MeetingEditorForm extends BaseForm {
         decision.setTags(
                 viewModel.getTags().stream().map(Tag::getId).collect(Collectors.toList()));
         decision.setLinkedMeeting(Optional.of(underlyingMeeting.getId()));
+        meetingDecisions.add(decision);
 
-        underlyingMeeting.getDecisions().add(decision);
         refreshDecisionsDisplay();
         openDecisionEditors.get(viewModel.getDecisionId()).dispose();
         openDecisionEditors.remove(viewModel.getDecisionId());
@@ -203,7 +214,7 @@ public class MeetingEditorForm extends BaseForm {
         int innerPanelHeight = panelHeight-4;
         decisionsPanel.clear();
 
-        for(Decision decision: underlyingMeeting.getDecisions()) {
+        for(Decision decision: meetingDecisions) {
 
             JPanel decisionSummaryPanel = ComponentFactory.createJPanelWithMargin(1,1);
             decisionSummaryPanel.setPreferredSize(new Dimension(panelWidth, panelHeight));
@@ -244,8 +255,8 @@ public class MeetingEditorForm extends BaseForm {
     private void onEditDecision(UUID decisionId) {
         System.out.println("Edit decision " + decisionId);
         DecisionEditorForm decisionEditorForm = new DecisionEditorForm(
-                underlyingMeeting.getDecisions().stream()
-                        .filter(d -> d.getId().equals(decisionId)).findFirst().get());
+                meetingDecisions.stream()  //TODO is this right??
+                        .filter(d -> d.equals(decisionId)).findFirst().get());
         openDecisionEditors.put(decisionId, decisionEditorForm);
         decisionEditorForm.setCancelCallback(() -> onCancelDecision(decisionId, decisionEditorForm));
         decisionEditorForm.setSaveCallback(this::saveDecision);
@@ -253,7 +264,7 @@ public class MeetingEditorForm extends BaseForm {
 
     private void onCancelDecision(UUID decisionId, DecisionEditorForm decisionEditorForm) {
         decisionEditorForm.dispose();
-        underlyingMeeting.getDecisions().removeIf(d -> d.getId().equals(decisionId));
+        meetingDecisions.removeIf(id -> id.equals(decisionId));
         refreshDecisionsDisplay();
     }
 
@@ -309,12 +320,12 @@ public class MeetingEditorForm extends BaseForm {
     }
 
     private void onFinish() {
-        openDecisionEditors.clear();
+        closeChildWindows();
         onFinishCallback.accept(buildViewModel());
     }
 
     private void onCancelDelete() {
-        openDecisionEditors.clear();
+        closeChildWindows();
         onFinishCallback.accept(buildViewModel());
     }
 
@@ -389,7 +400,7 @@ public class MeetingEditorForm extends BaseForm {
                 vsTags.getSelectedValues().stream().map(rd -> (Tag)rd).collect(Collectors.toList()));
         viewModel.setTags(tags);
 
-        viewModel.setDecisions(underlyingMeeting.getDecisions());
+        viewModel.setDecisions(meetingDecisions);
 
         System.out.println("buildViewModel() = " + viewModel);
 
@@ -398,12 +409,12 @@ public class MeetingEditorForm extends BaseForm {
 
     public class MeetingViewModel {
 
-        UUID meetingId;
-        LocalDateTime meetingDateTime;
-        String meetingTitle;
-        java.util.List<Person> attendees;
-        java.util.List<Tag> tags;
-        java.util.List<Decision> decisions;
+        private UUID meetingId;
+        private LocalDateTime meetingDateTime;
+        private String meetingTitle;
+        private java.util.List<Person> attendees;
+        private java.util.List<Tag> tags;
+        private java.util.List<Decision> decisions;
 
         public UUID getMeetingId() {
             return meetingId;

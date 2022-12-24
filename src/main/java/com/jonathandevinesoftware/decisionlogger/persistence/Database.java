@@ -30,6 +30,9 @@ public class Database {
             tableToScript.put("DECISION", "CreateDecision");
             tableToScript.put("DECISION_DECISIONMAKER", "CreateDecision_DecisionMaker");
             tableToScript.put("DECISION_TAG", "CreateDecision_Tag");
+            tableToScript.put("MEETING", "CreateMeeting");
+            tableToScript.put("MEETING_ATTENDEE", "CreateMeeting_Attendee");
+            tableToScript.put("MEETING_TAG", "CreateMeeting_Tag");
 
           //  dropAllTables();
             initialiseTables(getConnection());

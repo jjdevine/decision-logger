@@ -75,7 +75,6 @@ public class ComponentFactory {
         JPanel panel = new JPanel();
         if(GuiConstants.DEBUG) {
             panel.setBorder(new LineBorder(Color.RED));
-            Application.debug("border is red");
         }
         return panel;
     }

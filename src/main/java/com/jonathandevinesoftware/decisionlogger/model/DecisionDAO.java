@@ -3,8 +3,8 @@ package com.jonathandevinesoftware.decisionlogger.model;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.MultiMap;
 import com.jonathandevinesoftware.decisionlogger.persistence.Database;
 import com.jonathandevinesoftware.decisionlogger.persistence.DatabaseUtils;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDAO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -61,7 +61,32 @@ public class DecisionDAO {
         conn.close();
     }
 
-    private void saveDecision(Decision decision) throws SQLException {
+    public void deleteDecisionWithLinkedMeeting(UUID meetingId) throws SQLException {
+        System.out.println("Deleting decision with linked meeting id " + meetingId);
+        Connection conn = Database.getConnection();
+
+        PreparedStatement ps = conn.prepareStatement(
+                DatabaseUtils.loadSqlQuery("DeleteDecisionMakerByMeetingId"));
+        ps.setString(1, meetingId.toString());
+        ps.execute();
+        ps.close();
+
+        ps = conn.prepareStatement(
+                DatabaseUtils.loadSqlQuery("DeleteDecisionTagByMeetingId"));
+        ps.setString(1, meetingId.toString());
+        ps.execute();
+        ps.close();
+
+        ps = conn.prepareStatement(
+                "DELETE FROM Decision WHERE LinkedMeeting = ?");
+        ps.setString(1, meetingId.toString());
+        ps.execute();
+        ps.close();
+
+        conn.close();
+    }
+
+    public void saveDecision(Decision decision) throws SQLException {
         Connection conn = Database.getConnection();
 
         PreparedStatement ps = conn.prepareStatement(
@@ -102,6 +127,8 @@ public class DecisionDAO {
 
         conn.close();
     }
+
+
 
     public Decision loadDecision(UUID decisionId) throws SQLException {
         Connection conn = Database.getConnection();
@@ -188,6 +215,79 @@ public class DecisionDAO {
 
         conn.close();
         return decisionList;
+    }
+
+    public List<Decision> loadDecisionsByLinkedMeetingId(UUID linkedMeetingId) throws SQLException {
+        Connection conn = Database.getConnection();
+
+        PreparedStatement ps = conn.prepareStatement(
+                "SELECT "+DECISION_COLUMNS+" FROM Decision WHERE LinkedMeeting = ?");
+
+        ps.setString(1, linkedMeetingId.toString());
+
+        List<Decision> decisionList = new ArrayList<>();
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            decisionList.add(mapRow(rs));
+        }
+
+        applyTags(decisionList, conn);
+        applyDecisionMakers(decisionList, conn);
+
+        rs.close();
+        ps.close();
+        conn.close();
+
+        return decisionList;
+    }
+
+    private void applyTags(List<Decision> decisions, Connection conn) throws SQLException {
+        String sql = "SELECT DecisionId, TagId " +
+                "FROM Decision_Tag " +
+                "WHERE DecisionId = ?";
+
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        for(Decision decision: decisions) {
+            List<UUID> tags = new ArrayList<>();
+            pstmt.setString(1, decision.getId().toString());
+            ResultSet rs = pstmt.executeQuery();
+
+            while(rs.next()) {
+                UUID tagId = UUID.fromString(rs.getString("TagId"));
+                tags.add(tagId);
+            }
+
+            decision.setTags(tags);
+
+            rs.close();
+        }
+        pstmt.close();
+    }
+
+    private void applyDecisionMakers(List<Decision> decisions, Connection conn) throws SQLException {
+        String sql = "SELECT DecisionId, DecisionMakerId " +
+                "FROM Decision_DecisionMaker " +
+                "WHERE DecisionId = ?";
+
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        for(Decision decision: decisions) {
+
+            List<UUID> decisionMakers = new ArrayList<>();
+            pstmt.setString(1, decision.getId().toString());
+            ResultSet rs = pstmt.executeQuery();
+
+            while(rs.next()) {
+                UUID decisionMakerId = UUID.fromString(rs.getString("DecisionMakerId"));
+                decisionMakers.add(decisionMakerId);
+            }
+
+            decision.setDecisionMakers(decisionMakers);
+            rs.close();
+        }
+        pstmt.close();
     }
 
     private void applyDecisionMakers(
