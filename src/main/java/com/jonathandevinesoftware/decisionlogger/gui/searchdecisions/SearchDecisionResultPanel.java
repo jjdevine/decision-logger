@@ -81,11 +81,10 @@ public class SearchDecisionResultPanel {
         panelReadInfo.add(panelLinkedMeeting);
         panelLinkedMeeting.setBackground(new Color(255,200,200));
 
+        //buttons
         Dimension dimButton = new Dimension(
                 (int)(buttonsWidth*0.99),
                 (int)(layoutPanelHeight*0.49));
-
-        //buttons
         JButton bOpenDecision = ComponentFactory.createJButton("Open Decision", dimButton, onOpenDecision);
         JButton bOpenLinkedMeeting = ComponentFactory.createJButton("Open Linked Meeting", dimButton, onOpenLinkedMeeting);
 

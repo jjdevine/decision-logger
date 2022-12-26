@@ -23,6 +23,7 @@ public class DecisionEditorController {
 
     public DecisionEditorController(Decision decision) {
         this.decision = decision;
+        //TODO load from DB to check if this is a new or existing decisison?
         form = new DecisionEditorForm(decision);
         form.setSaveCallback(this::onSave);
         form.setCancelCallback(this::onCancel);

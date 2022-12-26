@@ -21,6 +21,7 @@ public class Meeting {
 
     public Meeting(UUID id) {
         this.id = id;
+        timestamp = LocalDateTime.now();
     }
 
     public UUID getId() {
@@ -44,18 +45,19 @@ public class Meeting {
     }
 
     public List<UUID> getTags() {
+        if (tags == null) {
+            tags = new ArrayList<>();
+        }
         return tags;
     }
 
     public void setTags(List<UUID> tags) {
-        if(tags == null) {
-            tags = new ArrayList<>();
-        }
+
         this.tags = tags;
     }
 
     public List<UUID> getAttendees() {
-        if(attendees == null) {
+        if (attendees == null) {
             attendees = new ArrayList<>();
         }
         return attendees;
@@ -66,7 +68,7 @@ public class Meeting {
     }
 
     public List<UUID> getDecisions() {
-        if(decisions == null) {
+        if (decisions == null) {
             decisions = new ArrayList<>();
         }
         return decisions;

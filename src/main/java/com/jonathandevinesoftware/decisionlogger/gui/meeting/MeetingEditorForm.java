@@ -15,7 +15,6 @@ import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelector
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.model.Meeting;
-import com.jonathandevinesoftware.decisionlogger.model.MeetingDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
@@ -72,16 +71,27 @@ public class MeetingEditorForm extends BaseForm {
 
     private List<Decision> meetingDecisions;
 
-    public MeetingEditorForm(String title, Meeting meeting) {
-        super(title);
+    enum Mode {NEW, EDIT}
+
+    private Mode mode;
+
+    public MeetingEditorForm(Meeting meeting, Mode mode) {
+        super(mode == Mode.NEW ? "New Meeting" : "Edit Meeting");
+        this.mode = mode;
         this.underlyingMeeting = meeting;
-        if(meeting != null) {
+
+        if(mode != Mode.NEW) {
             try {
                 meetingDecisions = DecisionDAO.getInstance().loadDecisionsByLinkedMeetingId(meeting.getId());
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Could not load linked decisions - " + e.getMessage());
             }
+        } else {
+            meetingDecisions = new ArrayList<>();
         }
+
+        populateMeetingMetaData();
+        refreshDecisionsDisplay();
     }
 
     @Override
@@ -184,7 +194,7 @@ public class MeetingEditorForm extends BaseForm {
         decision.setDecisionMakers(viewModel.attendees.stream().map(Person::getId).collect(Collectors.toList()));
         decision.setTags(viewModel.tags.stream().map(Tag::getId).collect(Collectors.toList()));
 
-        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(decision);
+        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(decision, DecisionEditorForm.Mode.NEW);
         openDecisionEditors.put(decision.getId(), decisionEditorForm);
         decisionEditorForm.setCancelCallback(decisionEditorForm::dispose);
         decisionEditorForm.setSaveCallback(this::saveDecision);
@@ -205,6 +215,13 @@ public class MeetingEditorForm extends BaseForm {
         refreshDecisionsDisplay();
         openDecisionEditors.get(viewModel.getDecisionId()).dispose();
         openDecisionEditors.remove(viewModel.getDecisionId());
+    }
+
+    private void populateMeetingMetaData() {
+        meetingDateTimePicker.setDateTimeStrict(underlyingMeeting.getTimestamp());
+        tfMeetingTitle.setText(underlyingMeeting.getTitle());
+        underlyingMeeting.getTags().forEach(tag -> vsTags.setSelectedValue(tag));
+        underlyingMeeting.getAttendees().forEach(attendee -> vsAttendees.setSelectedValue(attendee));
     }
 
     private void refreshDecisionsDisplay() {
@@ -255,8 +272,9 @@ public class MeetingEditorForm extends BaseForm {
     private void onEditDecision(UUID decisionId) {
         System.out.println("Edit decision " + decisionId);
         DecisionEditorForm decisionEditorForm = new DecisionEditorForm(
-                meetingDecisions.stream()  //TODO is this right??
-                        .filter(d -> d.equals(decisionId)).findFirst().get());
+                meetingDecisions.stream()
+                        .filter(d -> d.equals(decisionId)).findFirst().get(),
+                DecisionEditorForm.Mode.EDIT);
         openDecisionEditors.put(decisionId, decisionEditorForm);
         decisionEditorForm.setCancelCallback(() -> onCancelDecision(decisionId, decisionEditorForm));
         decisionEditorForm.setSaveCallback(this::saveDecision);

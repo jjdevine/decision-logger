@@ -107,8 +107,6 @@ public class MeetingDAO {
         populateMeetingTags(meeting, conn);
         populateMeetingDecisions(meeting, conn);
 
-        //TODO - implement the above
-
         return meeting;
     }
 

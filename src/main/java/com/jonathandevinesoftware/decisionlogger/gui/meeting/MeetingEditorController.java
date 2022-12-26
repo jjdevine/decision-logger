@@ -17,7 +17,13 @@ public class MeetingEditorController {
 
     public MeetingEditorController() {
         Meeting meeting = new Meeting(UUID.randomUUID());
-        form = new MeetingEditorForm("New Meeting", meeting);
+        form = new MeetingEditorForm(meeting, MeetingEditorForm.Mode.NEW);
+        form.setOnCancelDeleteCallback(this::onCancelDelete);
+        form.setOnFinishCallback(this::onFinish);
+    }
+
+    public MeetingEditorController(Meeting meeting) {
+        form = new MeetingEditorForm(meeting, MeetingEditorForm.Mode.EDIT);
         form.setOnCancelDeleteCallback(this::onCancelDelete);
         form.setOnFinishCallback(this::onFinish);
     }
@@ -99,8 +105,8 @@ public class MeetingEditorController {
     }
 
     private void onCancelDelete(MeetingEditorForm.MeetingViewModel meetingViewModel) {
+        System.out.println("Cancel delete " + meetingViewModel.getMeetingId());
         //TODO this
-        //TODO - when searching decisions allow opening of linked meeting
     }
 
 }

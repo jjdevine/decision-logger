@@ -139,7 +139,9 @@ public class SearchDecisionForm extends BaseForm {
                     SearchDecisionResultPanel.buildSearchDecisionResultPanel(
                             viewModel,
                             () -> openDecisionConsumer.accept(viewModel.getDecisionId()),
-                            null));
+                            viewModel.getLinkedMeetingId().isPresent()
+                                    ? () -> openMeetingConsumer.accept(viewModel.getLinkedMeetingId().get())
+                                    : null));
         }
         revalidate();
     }
@@ -156,6 +158,12 @@ public class SearchDecisionForm extends BaseForm {
 
     public void setOpenDecisionConsumer(Consumer<UUID> openDecisionConsumer) {
         this.openDecisionConsumer = openDecisionConsumer;
+    }
+
+    private Consumer<UUID> openMeetingConsumer = null;
+
+    public void setOpenMeetingConsumer(Consumer<UUID> openMeetingConsumer) {
+        this.openMeetingConsumer = openMeetingConsumer;
     }
 }
 

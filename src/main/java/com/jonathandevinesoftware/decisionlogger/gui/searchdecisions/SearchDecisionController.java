@@ -2,8 +2,11 @@ package com.jonathandevinesoftware.decisionlogger.gui.searchdecisions;
 
 import com.jonathandevinesoftware.decisionlogger.core.Application;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionEditorController;
+import com.jonathandevinesoftware.decisionlogger.gui.meeting.MeetingEditorController;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
+import com.jonathandevinesoftware.decisionlogger.model.Meeting;
+import com.jonathandevinesoftware.decisionlogger.model.MeetingDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDAO;
 
@@ -21,6 +24,7 @@ public class SearchDecisionController {
         searchDecisionForm = new SearchDecisionForm();
         searchDecisionForm.setSearchCallback(this::onSearch);
         searchDecisionForm.setOpenDecisionConsumer(this::openDecision);
+        searchDecisionForm.setOpenMeetingConsumer(this::openMeeting);
     }
 
     private void onSearch(List<UUID> decisionMakers, List<UUID> tags) {
@@ -92,6 +96,15 @@ public class SearchDecisionController {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        //TODO this
+    }
+
+    private void openMeeting(UUID meetingId) {
+        System.out.println("Open meeting " + meetingId);
+        try {
+            Meeting meeting = MeetingDAO.getInstance().loadMeeting(meetingId);
+            new MeetingEditorController(meeting);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

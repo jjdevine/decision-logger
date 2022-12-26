@@ -18,22 +18,21 @@ public class DecisionEditorForm extends BaseForm {
 
     private JPanel headerPanel;
 
-    enum Mode {NEW, EDIT}
+    public enum Mode {NEW, EDIT}
 
     private Mode mode;
 
-    public DecisionEditorForm(Decision decision) {
-        super(decision == null ? "New Decision" : "Edit Decision");
+    public DecisionEditorForm(Decision decision, Mode mode) {
+        super(mode == Mode.NEW ? "New Decision" : "Edit Decision");
         this.decision = decision;
+        this.mode = mode;
 
-        if(decision == null) {
+        if(mode == Mode.NEW) {
             //create new decision
             setHeaderPanelText("New Decision");
-            mode = Mode.NEW;
         } else {
             //edit existing decision
             setHeaderPanelText("Edit Decision");
-            mode = Mode.EDIT;
             decisionPanel.setDecision(decision);
         }
     }
