@@ -1,5 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.gui.decision;
 
+import com.jonathandevinesoftware.decisionlogger.gui.common.Mode;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
@@ -18,14 +19,13 @@ public class DecisionEditorForm extends BaseForm {
 
     private JPanel headerPanel;
 
-    public enum Mode {NEW, EDIT}
-
     private Mode mode;
 
     public DecisionEditorForm(Decision decision, Mode mode) {
         super(mode == Mode.NEW ? "New Decision" : "Edit Decision");
         this.decision = decision;
         this.mode = mode;
+        setupDecisionPanel();
 
         if(mode == Mode.NEW) {
             //create new decision
@@ -33,8 +33,14 @@ public class DecisionEditorForm extends BaseForm {
         } else {
             //edit existing decision
             setHeaderPanelText("Edit Decision");
-            decisionPanel.setDecision(decision);
         }
+    }
+
+    private void setupDecisionPanel() {
+        decisionPanel = new DecisionPanel(decision, mode);
+        decisionPanel.setSaveCallback(this::onSave);
+        decisionPanel.setCancelCallback(this::onCancel);
+        add(decisionPanel);
     }
 
     @Override
@@ -46,11 +52,6 @@ public class DecisionEditorForm extends BaseForm {
                         GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH,
                         GuiConstants.DEFAULT_HEADER_HEIGHT));
         add(headerPanel);
-
-        decisionPanel = new DecisionPanel();
-        decisionPanel.setSaveCallback(this::onSave);
-        decisionPanel.setCancelCallback(this::onCancel);
-        add(decisionPanel);
     }
 
     private void setHeaderPanelText(String text) {

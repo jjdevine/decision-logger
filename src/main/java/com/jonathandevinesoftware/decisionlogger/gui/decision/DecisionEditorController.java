@@ -1,6 +1,7 @@
 package com.jonathandevinesoftware.decisionlogger.gui.decision;
 
 import com.jonathandevinesoftware.decisionlogger.core.ApplicationConstants;
+import com.jonathandevinesoftware.decisionlogger.gui.common.Mode;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
@@ -21,10 +22,25 @@ public class DecisionEditorController {
 
     private Decision decision;
 
+    private Mode mode;
+
     public DecisionEditorController(Decision decision) {
         this.decision = decision;
-        //TODO load from DB to check if this is a new or existing decisison?
-        form = new DecisionEditorForm(decision);
+
+        //check if decision already exists
+        Decision dbDecision = null;
+        try {
+            dbDecision = DecisionDAO.getInstance().loadDecision(decision.getId());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (dbDecision != null) {
+            mode = Mode.EDIT;
+        } else {
+            mode = Mode.NEW;
+        }
+
+        form = new DecisionEditorForm(decision, mode);
         form.setSaveCallback(this::onSave);
         form.setCancelCallback(this::onCancel);
     }
@@ -35,7 +51,7 @@ public class DecisionEditorController {
 
     public void onSave(DecisionPanel.ViewModel viewModel) {
 
-        boolean isNewDecision = decision == null;
+        boolean isNewDecision = mode == Mode.NEW;
         Decision decisionToPersist;
         //is this a save or update?
         if(!isNewDecision) {
@@ -85,7 +101,6 @@ public class DecisionEditorController {
     }
 
     private void closeForm() {
-        System.out.println("Closing form");
         form.dispose();
         form = null;
         if(openMainMenuOnClose) {

@@ -3,6 +3,7 @@ package com.jonathandevinesoftware.decisionlogger.gui.meeting;
 import com.github.lgooddatepicker.components.DatePickerSettings;
 import com.github.lgooddatepicker.components.DateTimePicker;
 import com.github.lgooddatepicker.components.TimePickerSettings;
+import com.jonathandevinesoftware.decisionlogger.gui.common.Mode;
 import com.jonathandevinesoftware.decisionlogger.gui.common.SearchResultJPanel;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionEditorForm;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionPanel;
@@ -70,8 +71,6 @@ public class MeetingEditorForm extends BaseForm {
     private Map<UUID, DecisionEditorForm> openDecisionEditors = new HashMap<>();
 
     private List<Decision> meetingDecisions;
-
-    enum Mode {NEW, EDIT}
 
     private Mode mode;
 
@@ -194,7 +193,7 @@ public class MeetingEditorForm extends BaseForm {
         decision.setDecisionMakers(viewModel.attendees.stream().map(Person::getId).collect(Collectors.toList()));
         decision.setTags(viewModel.tags.stream().map(Tag::getId).collect(Collectors.toList()));
 
-        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(decision, DecisionEditorForm.Mode.NEW);
+        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(decision, Mode.NEW);
         openDecisionEditors.put(decision.getId(), decisionEditorForm);
         decisionEditorForm.setCancelCallback(decisionEditorForm::dispose);
         decisionEditorForm.setSaveCallback(this::saveDecision);
@@ -213,6 +212,7 @@ public class MeetingEditorForm extends BaseForm {
         meetingDecisions.add(decision);
 
         refreshDecisionsDisplay();
+        //TODO - the below errors when triggered from a meeting that is being edited..
         openDecisionEditors.get(viewModel.getDecisionId()).dispose();
         openDecisionEditors.remove(viewModel.getDecisionId());
     }
@@ -273,8 +273,8 @@ public class MeetingEditorForm extends BaseForm {
         System.out.println("Edit decision " + decisionId);
         DecisionEditorForm decisionEditorForm = new DecisionEditorForm(
                 meetingDecisions.stream()
-                        .filter(d -> d.equals(decisionId)).findFirst().get(),
-                DecisionEditorForm.Mode.EDIT);
+                        .filter(d -> d.getId().equals(decisionId)).findFirst().get(),
+                Mode.EDIT);
         openDecisionEditors.put(decisionId, decisionEditorForm);
         decisionEditorForm.setCancelCallback(() -> onCancelDecision(decisionId, decisionEditorForm));
         decisionEditorForm.setSaveCallback(this::saveDecision);
@@ -282,7 +282,7 @@ public class MeetingEditorForm extends BaseForm {
 
     private void onCancelDecision(UUID decisionId, DecisionEditorForm decisionEditorForm) {
         decisionEditorForm.dispose();
-        meetingDecisions.removeIf(id -> id.equals(decisionId));
+        meetingDecisions.removeIf(d -> d.getId().equals(decisionId));
         refreshDecisionsDisplay();
     }
 

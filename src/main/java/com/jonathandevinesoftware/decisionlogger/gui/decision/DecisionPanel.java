@@ -1,5 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.gui.decision;
 
+import com.jonathandevinesoftware.decisionlogger.gui.common.Mode;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
@@ -26,11 +27,26 @@ public class DecisionPanel extends JPanel implements ActionListener {
     private ValueSelectorPanel vsDecisionMakers;
     private ValueSelectorPanel vsTags;
     private JButton bSave, bCancel;
-    private String cancelMessage = "Close without saving?";
-    private String cancelTitle = "Cancel Decision?";
+    private String cancelMessage;
+    private String cancelTitle;
+    private String cancelButtonText;
     private Decision decision;
 
-    public DecisionPanel() {
+    private Mode mode;
+
+    public DecisionPanel(Decision decision, Mode mode) {
+        this.decision = decision;
+        this.mode = mode;
+
+        if(mode == Mode.NEW) {
+            cancelMessage = "Close without saving?";
+            cancelTitle = "Cancel Decision?";
+            cancelButtonText = "Cancel Decision";
+        } else {
+            cancelMessage = "Really delete this decision?";
+            cancelTitle = "Delete Decision?";
+            cancelButtonText = "Delete Decision";
+        }
 
         setBorder(ComponentFactory.createDefaultBorder());
         setPreferredSize(new Dimension(GuiConstants.DEFAULT_FULL_COMPONENT_WIDTH, 545));
@@ -62,13 +78,18 @@ public class DecisionPanel extends JPanel implements ActionListener {
         Dimension dimButton = new Dimension(GuiConstants.DEFAULT_HALF_COMPONENT_WIDTH-10,50);
 
         bSave = ComponentFactory.createJButton("Save Decision", dimButton);
-        bCancel = ComponentFactory.createJButton("Cancel Decision", dimButton);
+        bCancel = ComponentFactory.createJButton(cancelButtonText, dimButton);
+        if(mode == Mode.EDIT) {
+            bCancel.setForeground(Color.RED);
+        }
 
         panelButtons.add(bSave);
         panelButtons.add(bCancel);
 
         bSave.addActionListener(this);
         bCancel.addActionListener(this);
+
+        initialiseDecisionView();
     }
 
     @Override
@@ -147,15 +168,10 @@ public class DecisionPanel extends JPanel implements ActionListener {
         return viewModel;
     }
 
-    public void setDecision(Decision decision) {
-        this.decision = decision;
+    private void initialiseDecisionView() {
         taDecision.setText(decision.getDecisionText());
         decision.getTags().forEach(tag -> vsTags.setSelectedValue(tag));
         decision.getDecisionMakers().forEach(tag -> vsDecisionMakers.setSelectedValue(tag));
-        bCancel.setText("Delete Decision");
-        bCancel.setForeground(Color.RED);
-        cancelMessage = "Really delete this decision?";
-        cancelTitle = "Delete Decision?";
     }
 
 

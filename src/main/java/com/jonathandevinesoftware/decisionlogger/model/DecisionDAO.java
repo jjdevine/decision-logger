@@ -142,6 +142,8 @@ public class DecisionDAO {
 
         if(rs.next()) {
             result = mapRow(rs);
+        } else {
+            return null;
         }
 
         rs.close();

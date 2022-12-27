@@ -3,6 +3,9 @@ package com.jonathandevinesoftware.decisionlogger.gui.mainmenu;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionEditorController;
 import com.jonathandevinesoftware.decisionlogger.gui.meeting.MeetingEditorController;
 import com.jonathandevinesoftware.decisionlogger.gui.searchdecisions.SearchDecisionController;
+import com.jonathandevinesoftware.decisionlogger.model.Decision;
+
+import java.util.UUID;
 
 public class MainMenuController {
 
@@ -27,7 +30,8 @@ public class MainMenuController {
 
     public void onNewAdHocDecision() {
         closeMainMenu();
-        new DecisionEditorController(null);
+        Decision decision = new Decision(UUID.randomUUID());
+        new DecisionEditorController(decision);
     }
 
     public void onNewMeeting() {

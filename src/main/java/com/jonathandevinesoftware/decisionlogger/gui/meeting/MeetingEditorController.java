@@ -1,5 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.gui.meeting;
 
+import com.jonathandevinesoftware.decisionlogger.gui.common.Mode;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.model.Meeting;
 import com.jonathandevinesoftware.decisionlogger.model.MeetingDAO;
@@ -17,13 +18,13 @@ public class MeetingEditorController {
 
     public MeetingEditorController() {
         Meeting meeting = new Meeting(UUID.randomUUID());
-        form = new MeetingEditorForm(meeting, MeetingEditorForm.Mode.NEW);
+        form = new MeetingEditorForm(meeting, Mode.NEW);
         form.setOnCancelDeleteCallback(this::onCancelDelete);
         form.setOnFinishCallback(this::onFinish);
     }
 
     public MeetingEditorController(Meeting meeting) {
-        form = new MeetingEditorForm(meeting, MeetingEditorForm.Mode.EDIT);
+        form = new MeetingEditorForm(meeting, Mode.EDIT);
         form.setOnCancelDeleteCallback(this::onCancelDelete);
         form.setOnFinishCallback(this::onFinish);
     }
