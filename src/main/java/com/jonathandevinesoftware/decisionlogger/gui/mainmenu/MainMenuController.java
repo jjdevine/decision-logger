@@ -3,6 +3,7 @@ package com.jonathandevinesoftware.decisionlogger.gui.mainmenu;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.DecisionEditorController;
 import com.jonathandevinesoftware.decisionlogger.gui.meeting.MeetingEditorController;
 import com.jonathandevinesoftware.decisionlogger.gui.searchdecisions.SearchDecisionController;
+import com.jonathandevinesoftware.decisionlogger.gui.searchmeetings.SearchMeetingController;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 
 import java.util.UUID;
@@ -20,7 +21,8 @@ public class MainMenuController {
     }
 
     public void onSearchMeetings() {
-
+        closeMainMenu();
+        new SearchMeetingController();
     }
 
     public void onSearchDecisions() {
@@ -45,7 +47,7 @@ public class MainMenuController {
         mainMenu.setNewAdHocDecisionCallback(this::onNewAdHocDecision);
         mainMenu.setNewMeetingCallback(this::onNewMeeting);
         mainMenu.setSearchDecisionsCallback(this::onSearchDecisions);
-        mainMenu.setSearchMeetingsCallback(this::onNewMeeting);
+        mainMenu.setSearchMeetingsCallback(this::onSearchMeetings);
     }
 
     private void closeMainMenu() {

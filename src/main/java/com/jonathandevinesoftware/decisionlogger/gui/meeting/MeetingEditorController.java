@@ -1,6 +1,7 @@
 package com.jonathandevinesoftware.decisionlogger.gui.meeting;
 
 import com.jonathandevinesoftware.decisionlogger.gui.common.Mode;
+import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.model.Meeting;
 import com.jonathandevinesoftware.decisionlogger.model.MeetingDAO;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class MeetingEditorController {
 
     private MeetingEditorForm form;
+    private boolean openMainMenuOnClose = true;
 
     public MeetingEditorController() {
         Meeting meeting = new Meeting(UUID.randomUUID());
@@ -106,8 +108,20 @@ public class MeetingEditorController {
     }
 
     private void onCancelDelete(MeetingEditorForm.MeetingViewModel meetingViewModel) {
-        System.out.println("Cancel delete " + meetingViewModel.getMeetingId());
-        //TODO this
+        closeForm();
+        //TODO delete meeting if exists
+    }
+
+    public void setOpenMainMenuOnClose(boolean openMainMenuOnClose) {
+        this.openMainMenuOnClose = openMainMenuOnClose;
+    }
+
+    private void closeForm() {
+        form.dispose();
+        form = null;
+        if(openMainMenuOnClose) {
+            MainMenuController.getInstance().displayMainMenu();
+        }
     }
 
 }

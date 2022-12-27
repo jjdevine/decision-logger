@@ -14,4 +14,5 @@ Test cases:
 6. can remove existing decision from meeting from decision search
 
 7. can create meeting
+8. can search for meeting
  */
