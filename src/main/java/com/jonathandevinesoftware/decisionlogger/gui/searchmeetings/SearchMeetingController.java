@@ -6,5 +6,10 @@ public class SearchMeetingController {
 
     public SearchMeetingController() {
         form = new SearchMeetingForm("Search Meetings");
+        form.setSearchCallback(this::onSearch);
+    }
+
+    private void onSearch(SearchParameters searchParameters) {
+        //TODO - implement this
     }
 }
