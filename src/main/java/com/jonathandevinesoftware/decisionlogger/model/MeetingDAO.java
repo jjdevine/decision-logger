@@ -207,57 +207,71 @@ public class MeetingDAO {
             Next need to populate the lists - attendee ids, tag ids and decision ids
          */
 
+        applyLists(meetingList, searchParameters, conn);
 
-        /*
-            Execute 2 queries - one for all decision maker ids for any decisions returned,
-            the second for all tag ids for any decisions returned. Once we have this information
-        we will map in memory all the decision makers/tags to the decisions they belong to.
-         *
-
-        applyDecisionMakers(decisionMakerIds, tagIds, decisionList, conn);
-        applyTags(decisionMakerIds, tagIds, decisionList, conn);
 
         conn.close();
-        return decisionList;
-         */
-
-        return null;
+        return meetingList;
     }
 
-    private void populateMeetingLists(List<Meeting> meetings, SearchParameters searchParameters, Connection conn) throws SQLException {
+    private void applyLists(List<Meeting> meetingList, SearchParameters searchParameters, Connection conn) throws SQLException {
 
         StringBuilder sql = new StringBuilder();
         sql.append("WITH MeetingsQueryResults (id, title, timestamp) AS (");
         sql.append(buildQueryMeetingsSql(searchParameters));
         sql.append(") ");
 
-        sql.append("SELECT ma.MeetingId AS MeetingId, ma.Attendee AS Value, 'Attendee' as Type ");
+        sql.append("SELECT ma.MeetingId AS MeetingId, ma.AttendeeId AS Value, 'Attendee' as Type ");
         sql.append("FROM Meeting_Attendee ma ");
-        sql.append("INNER JOIN MeetingsQueryResults mqr on mqr.id = ma.MeetingId");
-        System.out.println(sql);
+        sql.append("INNER JOIN MeetingsQueryResults mqr on mqr.id = ma.MeetingId ");
+
+        sql.append("UNION ALL  ");
+        sql.append("SELECT mt.MeetingId AS MeetingId, mt.TagId AS Value, 'Tag' as Type ");
+        sql.append("FROM Meeting_Tag mt ");
+        sql.append("INNER JOIN MeetingsQueryResults mqr on mqr.id = mt.MeetingId ");
+
+        sql.append("UNION ALL  ");
+        sql.append("SELECT d.LinkedMeeting AS MeetingId, d.Id AS Value, 'Decision' as Type ");
+        sql.append("FROM Decision d ");
+        sql.append("INNER JOIN MeetingsQueryResults mqr on mqr.id = d.LinkedMeeting ");
 
         PreparedStatement stmt = conn.prepareStatement(sql.toString());
         applyQueryMeetingsSqlParams(searchParameters, stmt);
-
         ResultSet rs = stmt.executeQuery();
 
-        Database.debugResultSet(rs);
         /*
+            ResultSet is a 3 column data set of this format:
 
-        SELECT MeetingId, 'Attendee', AttendeeId
-        FROM Meeting_Attendee
-        WHERE MeetingId = ?
-        UNION ALL
-        SELECT MeetingId, 'Tag', TagId
-        FROM Meeting_Tag
-        WHERE MeetingId = ?
-        UNION ALL
-        SELECT LinkedMeeting, 'Decision', Id
-        FROM Decision
-        WHERE LinkedMeeting = ?
-
+            MEETINGID,VALUE,TYPE
+            532a06f8-c067-4c04-b3fa-ca13b30ef05c,c0062a4b-d7f7-4ccd-be8d-4e8202a49843,Attendee
+            532a06f8-c067-4c04-b3fa-ca13b30ef05c,b962acfa-5aee-4091-a042-6379e95f9a4d,Attendee
+            532a06f8-c067-4c04-b3fa-ca13b30ef05c,25705738-330b-42df-b846-e4f07b68d718,Tag
+            532a06f8-c067-4c04-b3fa-ca13b30ef05c,28e8f838-d5cb-463f-93cc-b39c93546df2,Decision
          */
+
+        while(rs.next()) {
+            UUID meetingId = UUID.fromString(rs.getString("MeetingId"));
+            UUID value = UUID.fromString(rs.getString("Value"));
+            String type = rs.getString("Type");
+            Meeting thisMeeting = meetingList.stream().filter(m -> m.getId().equals(meetingId)).findFirst().get();
+
+            switch (type) {
+                case "Attendee":
+                    thisMeeting.getAttendees().add(value);
+                    break;
+                case "Tag":
+                    thisMeeting.getTags().add(value);
+                    break;
+                case "Decision":
+                    thisMeeting.getDecisions().add(value);
+                    break;
+            }
+        }
+
+        stmt.close();
+        rs.close();
     }
+
 
     private Meeting mapRow(ResultSet rs) throws SQLException {
 
