@@ -1,10 +1,8 @@
 package com.jonathandevinesoftware.decisionlogger.model;
 
+import com.jonathandevinesoftware.decisionlogger.gui.searchmeetings.SearchParameters;
 import com.jonathandevinesoftware.decisionlogger.persistence.Database;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDAO;
+import com.jonathandevinesoftware.decisionlogger.persistence.DatabaseUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -184,5 +182,214 @@ public class MeetingDAO {
         meeting.setTags(tags);
         rs.close();
         stmt.close();
+    }
+
+    public List<Meeting> queryMeetings(SearchParameters searchParameters) throws SQLException {
+        Connection conn = Database.getConnection();
+
+        String query = buildQueryMeetingsSql(searchParameters);
+        System.out.println(query);
+
+        PreparedStatement ps = conn.prepareStatement(query);
+        applyQueryMeetingsSqlParams(searchParameters, ps);
+
+        List<Meeting> meetingList = new ArrayList<>();
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            meetingList.add(mapRow(rs));
+        }
+
+        rs.close();
+        ps.close();
+
+        /*
+            Next need to populate the lists - attendee ids, tag ids and decision ids
+         */
+
+
+        /*
+            Execute 2 queries - one for all decision maker ids for any decisions returned,
+            the second for all tag ids for any decisions returned. Once we have this information
+        we will map in memory all the decision makers/tags to the decisions they belong to.
+         *
+
+        applyDecisionMakers(decisionMakerIds, tagIds, decisionList, conn);
+        applyTags(decisionMakerIds, tagIds, decisionList, conn);
+
+        conn.close();
+        return decisionList;
+         */
+
+        return null;
+    }
+
+    private void populateMeetingLists(List<Meeting> meetings, SearchParameters searchParameters, Connection conn) throws SQLException {
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("WITH MeetingsQueryResults (id, title, timestamp) AS (");
+        sql.append(buildQueryMeetingsSql(searchParameters));
+        sql.append(") ");
+
+        sql.append("SELECT ma.MeetingId AS MeetingId, ma.Attendee AS Value, 'Attendee' as Type ");
+        sql.append("FROM Meeting_Attendee ma ");
+        sql.append("INNER JOIN MeetingsQueryResults mqr on mqr.id = ma.MeetingId");
+        System.out.println(sql);
+
+        PreparedStatement stmt = conn.prepareStatement(sql.toString());
+        applyQueryMeetingsSqlParams(searchParameters, stmt);
+
+        ResultSet rs = stmt.executeQuery();
+
+        Database.debugResultSet(rs);
+        /*
+
+        SELECT MeetingId, 'Attendee', AttendeeId
+        FROM Meeting_Attendee
+        WHERE MeetingId = ?
+        UNION ALL
+        SELECT MeetingId, 'Tag', TagId
+        FROM Meeting_Tag
+        WHERE MeetingId = ?
+        UNION ALL
+        SELECT LinkedMeeting, 'Decision', Id
+        FROM Decision
+        WHERE LinkedMeeting = ?
+
+         */
+    }
+
+    private Meeting mapRow(ResultSet rs) throws SQLException {
+
+        Meeting meeting = new Meeting(UUID.fromString(rs.getString("Id")));
+        meeting.setTimestamp(rs.getTimestamp("Timestamp").toLocalDateTime());
+        meeting.setTitle(rs.getString("Title"));
+
+        return meeting;
+    }
+
+
+    private void applyQueryMeetingsSqlParams(SearchParameters searchParameters, PreparedStatement ps) throws SQLException {
+
+        int index=1;
+        for(UUID attendeeId: searchParameters.getAttendeeIds()) {
+            ps.setString(index++, attendeeId.toString());
+        }
+
+        for(UUID tagId: searchParameters.getTagIds()) {
+            ps.setString(index++, tagId.toString());
+        }
+
+        for(UUID decisionMakerId: searchParameters.getDecisionMakerIds()) {
+            ps.setString(index++, decisionMakerId.toString());
+        }
+    }
+
+    public void withTest2(SearchParameters searchParameters) throws SQLException {
+        Connection conn = Database.getConnection();
+
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("WITH MeetingsQueryResults (id, title, timestamp) AS (");
+        sql.append(buildQueryMeetingsSql(searchParameters));
+        sql.append(") ");
+
+        sql.append("SELECT ma.MeetingId AS MeetingId, ma.AttendeeId AS Value, 'Attendee' as Type ");
+        sql.append("FROM Meeting_Attendee ma ");
+        sql.append("INNER JOIN MeetingsQueryResults mqr on mqr.id = ma.MeetingId ");
+
+        sql.append("UNION ALL  ");
+        sql.append("SELECT mt.MeetingId AS MeetingId, mt.TagId AS Value, 'Tag' as Type ");
+        sql.append("FROM Meeting_Tag mt ");
+        sql.append("INNER JOIN MeetingsQueryResults mqr on mqr.id = mt.MeetingId ");
+
+        sql.append("UNION ALL  ");
+        sql.append("SELECT d.LinkedMeeting AS MeetingId, d.Id AS Value, 'Decision' as Type ");
+        sql.append("FROM Decision d ");
+        sql.append("INNER JOIN MeetingsQueryResults mqr on mqr.id = d.LinkedMeeting ");
+        System.out.println(sql);
+
+        PreparedStatement stmt = conn.prepareStatement(sql.toString());
+        applyQueryMeetingsSqlParams(searchParameters, stmt);
+
+        ResultSet rs = stmt.executeQuery();
+
+        Database.debugResultSet(rs);
+    }
+
+    public void withTest(SearchParameters searchParameters) throws SQLException {
+        Connection conn = Database.getConnection();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("WITH MeetingsTable (id, title, timestamp) AS (");
+        sql.append(buildQueryMeetingsSql(searchParameters));
+        sql.append(") ");
+        sql.append("SELECT * FROM MeetingsTable");
+        System.out.println(sql);
+
+        PreparedStatement stmt = conn.prepareStatement(sql.toString());
+        applyQueryMeetingsSqlParams(searchParameters, stmt);
+
+        ResultSet rs = stmt.executeQuery();
+
+        Database.debugResultSet(rs);
+    }
+
+    private String buildQueryMeetingsSql(SearchParameters searchParameters) {
+        /*
+            SELECT DISTINCT m.*
+            FROM Meeting m
+            INNER JOIN Meeting_Attendee ma on ma.MeetingId = m.Id
+            INNER JOIN Meeting_Tag mt on mt.MeetingId = m.Id
+            INNER JOIN Decision d on d.LinkedMeeting = m.Id
+            INNER JOIN Decision_DecisionMaker dm on dm.DecisionId = d.Id
+            WHERE ma.AttendeeId in (?, ?)
+            OR mt.TagId in (?, ?)
+            OR dm.DecisionMakerId in (?, ?)
+         */
+
+        boolean noAttendees = searchParameters.getAttendeeIds().size() == 0;
+        boolean noTags = searchParameters.getTagIds().size() == 0;
+        boolean noDecisionMakers = searchParameters.getDecisionMakerIds().size() == 0;
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT DISTINCT m.*\n ");
+        sql.append("FROM Meeting m\n ");
+
+        if(!noAttendees) {
+            sql.append("INNER JOIN Meeting_Attendee ma on ma.MeetingId = m.Id\n ");
+        }
+        if(!noTags) {
+            sql.append("INNER JOIN Meeting_Tag mt on mt.MeetingId = m.Id\n ");
+        }
+        if(!noDecisionMakers) {
+            sql.append("INNER JOIN Decision d on d.LinkedMeeting = m.Id\n ");
+            sql.append("INNER JOIN Decision_DecisionMaker dm on dm.DecisionId = d.Id\n ");
+        }
+
+        boolean firstClause = true;
+
+        if(!noAttendees) {
+            sql.append("WHERE ma.AttendeeId IN (PLACEHOLDERS)\n "
+                    .replace("PLACEHOLDERS",
+                            DatabaseUtils.placeholders(searchParameters.getAttendeeIds().size())));
+            firstClause = false;
+        }
+
+        if(!noTags) {
+            String filterClause = firstClause ? "WHERE" : "AND";
+            sql.append(filterClause + " mt.TagId IN (PLACEHOLDERS)\n "
+                    .replace("PLACEHOLDERS",
+                            DatabaseUtils.placeholders(searchParameters.getTagIds().size())));
+            firstClause = false;
+        }
+
+        if(!noDecisionMakers) {
+            String filterClause = firstClause ? "WHERE" : "AND";
+            sql.append(filterClause + " dm.DecisionMakerId IN (PLACEHOLDERS)\n "
+                    .replace("PLACEHOLDERS",
+                            DatabaseUtils.placeholders(searchParameters.getDecisionMakerIds().size())));
+        }
+        return sql.toString();
     }
 }

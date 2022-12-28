@@ -189,7 +189,7 @@ public class DecisionDAO {
 
         Connection conn = Database.getConnection();
 
-        String query = buildQueryDecisionsSql(decisionMakerIds, tagIds, "SELECT d.*");
+        String query = buildQueryDecisionsSql(decisionMakerIds, tagIds, "SELECT DISTINCT d.*");
 
         System.out.println(query);
 
@@ -374,7 +374,7 @@ public class DecisionDAO {
         /*
         Ideal SQL is:
 
-            SELECT d.*
+            SELECT DISTINCT d.*
             FROM Decision d
             INNER JOIN Decision_DecisionMaker dm on dm.DecisionId = d.Id
             INNER JOIN Decision_Tag t on t.DecisionId = d.Id
@@ -397,12 +397,12 @@ public class DecisionDAO {
         }
         if(!decisionMakersEmpty) {
             sql.append("WHERE dm.DecisionMakerId IN (DM_PLACEHOLDERS)\n "
-                    .replace("DM_PLACEHOLDERS", placeholders(decisionMakerIds.size())));
+                    .replace("DM_PLACEHOLDERS", DatabaseUtils.placeholders(decisionMakerIds.size())));
         }
         if(!tagsEmpty) {
             String filterClause = decisionMakersEmpty ? "WHERE" : "AND";
             sql.append(filterClause + " t.TagId IN (T_PLACEHOLDERS)\n "
-                    .replace("T_PLACEHOLDERS", placeholders(tagIds.size())));
+                    .replace("T_PLACEHOLDERS", DatabaseUtils.placeholders(tagIds.size())));
         }
         return sql.toString();
     }
@@ -434,14 +434,5 @@ public class DecisionDAO {
         }
 
         return decision;
-    }
-
-    private String placeholders(int count) {
-        List<String> placeholders = new ArrayList<>();
-        for(int x=0; x<count; x++) {
-            placeholders.add("?");
-        }
-
-        return placeholders.stream().collect(Collectors.joining(","));
     }
 }
