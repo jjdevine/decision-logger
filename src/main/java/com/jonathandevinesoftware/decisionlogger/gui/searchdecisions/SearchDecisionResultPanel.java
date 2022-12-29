@@ -47,7 +47,7 @@ public class SearchDecisionResultPanel {
         JPanel panelDecisionText = ComponentFactory.createJPanelWithMargin(1,1);
         panelDecisionText.setPreferredSize(
                 new Dimension((int)(readInfoWidth*0.8), 20));
-        JLabel lDecisionText = ComponentFactory.createJLabel(truncate(viewModel.getDecisionText(), 100));
+        JLabel lDecisionText = ComponentFactory.createJLabel(GuiUtils.truncate(viewModel.getDecisionText(), 100));
         panelDecisionText.add(lDecisionText);
         panelReadInfo.add(panelDecisionText);
         panelDecisionText.setBackground(new Color(255,255,200));
@@ -75,7 +75,12 @@ public class SearchDecisionResultPanel {
         JPanel panelLinkedMeeting = ComponentFactory.createJPanelWithMargin(1,1);
         panelLinkedMeeting.setPreferredSize(
                 new Dimension((int)(readInfoWidth*0.19), 20));
-        JLabel lLinkedMeeting = ComponentFactory.createJLabel("No linked Meeting");
+
+        String linkedMeetingText = viewModel.getLinkedMeetingTitle() == null
+                ? "No Linked Meeting"
+                : GuiUtils.truncate(viewModel.getLinkedMeetingTitle(), 40);
+
+        JLabel lLinkedMeeting = ComponentFactory.createJLabel(linkedMeetingText);
         lLinkedMeeting.setFont(ComponentFactory.getItalicFont(10));
         panelLinkedMeeting.add(lLinkedMeeting);
         panelReadInfo.add(panelLinkedMeeting);
@@ -115,7 +120,7 @@ public class SearchDecisionResultPanel {
             }).collect(Collectors.toList());
 
         String text = sortedDecisionMakers.stream().collect(Collectors.joining(", "));
-        return truncate(text, 50);
+        return GuiUtils.truncate(text, 50);
     }
 
     private static String getTagText(SearchDecisionResultViewModel viewModel) {
@@ -139,13 +144,7 @@ public class SearchDecisionResultPanel {
                 }).collect(Collectors.toList());
 
         String text = sortedTags.stream().collect(Collectors.joining(", "));
-        return truncate(text, 50);
+        return GuiUtils.truncate(text, 50);
     }
 
-    private static String truncate(String str, int maxLen) {
-        if(str.length() > maxLen) {
-            return str.substring(0, maxLen-3) + "...";
-        }
-        return str;
-    }
 }

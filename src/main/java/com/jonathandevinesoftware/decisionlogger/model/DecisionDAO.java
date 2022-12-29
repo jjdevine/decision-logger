@@ -1,5 +1,6 @@
 package com.jonathandevinesoftware.decisionlogger.model;
 
+import com.jonathandevinesoftware.decisionlogger.gui.searchdecisions.DecisionQuerySearchResult;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.MultiMap;
 import com.jonathandevinesoftware.decisionlogger.persistence.Database;
 import com.jonathandevinesoftware.decisionlogger.persistence.DatabaseUtils;
@@ -185,7 +186,7 @@ public class DecisionDAO {
         return result;
     }
 
-    public List<Decision> queryDecisions(List<UUID> decisionMakerIds, List<UUID> tagIds) throws SQLException {
+    public List<DecisionQuerySearchResult> queryDecisions(List<UUID> decisionMakerIds, List<UUID> tagIds) throws SQLException {
 
         Connection conn = Database.getConnection();
 
@@ -196,7 +197,7 @@ public class DecisionDAO {
         PreparedStatement ps = conn.prepareStatement(query);
         applyQueryDecisionsSqlParams(decisionMakerIds, tagIds, ps);
 
-        List<Decision> decisionList = new ArrayList<>();
+        List<DecisionQuerySearchResult> decisionList = new ArrayList<>();
         ResultSet rs = ps.executeQuery();
 
         while (rs.next()) {
@@ -210,10 +211,13 @@ public class DecisionDAO {
             Execute 2 queries - one for all decision maker ids for any decisions returned,
             the second for all tag ids for any decisions returned. Once we have this information
             we will map in memory all the decision makers/tags to the decisions they belong to.
+
+            Additional query to add linked meeting titles
          */
 
         applyDecisionMakers(decisionMakerIds, tagIds, decisionList, conn);
         applyTags(decisionMakerIds, tagIds, decisionList, conn);
+        applyMeetings(decisionMakerIds, tagIds, decisionList, conn);
 
         conn.close();
         return decisionList;
@@ -295,7 +299,7 @@ public class DecisionDAO {
     private void applyDecisionMakers(
             List<UUID> decisionMakerIds,
             List<UUID> tagIds,
-            List<Decision> decisionList,
+            List<DecisionQuerySearchResult> decisionList,
             Connection conn) throws SQLException {
         //load decision maker ids
         /*
@@ -337,7 +341,7 @@ public class DecisionDAO {
     private void applyTags(
             List<UUID> decisionMakerIds,
             List<UUID> tagIds,
-            List<Decision> decisionList,
+            List<DecisionQuerySearchResult> decisionList,
             Connection conn) throws SQLException {
         //load tag ids
         String tagSql =
@@ -365,6 +369,47 @@ public class DecisionDAO {
             decision.setTags(
                     decisionToTag.getValuesOrNewList(decision.getId()));
         }
+
+        rs.close();
+        ps.close();
+    }
+
+    private void applyMeetings(
+            List<UUID> decisionMakerIds,
+            List<UUID> tagIds,
+            List<DecisionQuerySearchResult> decisionList,
+            Connection conn) throws SQLException {
+        //load meetings
+        String meetingSql =
+                "SELECT m.Id, m.Title\n " +
+                        "FROM Meeting m\n " +
+                        "WHERE m.id \n " +
+                        "IN (\nSUBQUERY)".replace(
+                                "SUBQUERY",
+                                buildQueryDecisionsSql(decisionMakerIds, tagIds, "SELECT d.LinkedMeeting"));
+        PreparedStatement ps = conn.prepareStatement(meetingSql);
+        applyQueryDecisionsSqlParams(decisionMakerIds, tagIds, ps);
+
+        ResultSet rs = ps.executeQuery();
+
+        System.out.println("decisionList - " + decisionList);
+
+        while(rs.next()) {
+            String meetingId = rs.getString("Id");
+            String meetingTitle = rs.getString("Title");
+
+            System.out.println(meetingId + " - " + meetingTitle);
+            for(DecisionQuerySearchResult decision: decisionList) {
+                Optional<UUID> linkedMeeting = decision.getLinkedMeeting();
+                if(linkedMeeting != null
+                        && !linkedMeeting.isEmpty()
+                        && linkedMeeting.get().toString().equals(meetingId)) {
+                    decision.setMeetingTitle(meetingTitle);
+                }
+            }
+        }
+
+        //TODO: nothing renders in UI - debug
 
         rs.close();
         ps.close();
@@ -424,8 +469,8 @@ public class DecisionDAO {
         System.out.println(DecisionDAO.getInstance().loadDecision(UUID.fromString("750161b3-360e-467d-b51d-61c9d1f63472")));
     }
 
-    private Decision mapRow(ResultSet rs) throws SQLException {
-        Decision decision = new Decision(UUID.fromString(rs.getString("id")));
+    private DecisionQuerySearchResult mapRow(ResultSet rs) throws SQLException {
+        DecisionQuerySearchResult decision = new DecisionQuerySearchResult(UUID.fromString(rs.getString("id")));
         decision.setDecisionText(rs.getString("text"));
         decision.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
         String linkedMeeting = rs.getString("linkedMeeting");

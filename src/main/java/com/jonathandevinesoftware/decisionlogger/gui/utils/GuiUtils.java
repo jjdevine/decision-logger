@@ -59,4 +59,11 @@ public class GuiUtils {
     public static DateTimeFormatter getDefaultDateTimeFormatter() {
         return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     }
+
+    public static String truncate(String text, int maxLength) {
+        if(text.length() > maxLength) {
+            return text.substring(0, maxLength-3) + "...";
+        }
+        return text;
+    }
 }

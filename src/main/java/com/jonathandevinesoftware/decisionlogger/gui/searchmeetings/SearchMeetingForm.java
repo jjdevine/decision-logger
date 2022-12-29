@@ -159,4 +159,7 @@ public class SearchMeetingForm extends BaseForm {
     public void closeOperation() {
         System.exit(0);
     }
+
+    public void setSearchResults(List<SearchMeetingResultViewModel> viewModels) {
+    }
 }

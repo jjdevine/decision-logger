@@ -7,9 +7,14 @@ import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.model.Meeting;
 import com.jonathandevinesoftware.decisionlogger.model.MeetingDAO;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceDataException;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceDataUtils;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDAO;
 
+import javax.swing.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +34,25 @@ public class SearchDecisionController {
 
     private void onSearch(List<UUID> decisionMakers, List<UUID> tags) {
         try {
-            List<Decision> decisionList = DecisionDAO.getInstance().queryDecisions(decisionMakers, tags);
-            List<SearchDecisionResultViewModel> viewModels =
-                    decisionList.stream()
-                            .map(d -> buildSearchResultViewModel(d, decisionMakers, tags))
-                            .collect(Collectors.toList());
+            List<DecisionQuerySearchResult> decisionList = DecisionDAO.getInstance().queryDecisions(decisionMakers, tags);
+
+            List<SearchDecisionResultViewModel> viewModels = new ArrayList<>();
+            boolean firstException = true;
+            for(Decision decision: decisionList) {
+                SearchDecisionResultViewModel viewModel = null;
+                try {
+                    viewModel = buildSearchResultViewModel(decision, decisionMakers, tags);
+                } catch (ReferenceDataException e) {
+                    if(firstException) {
+                        firstException = false;
+                        Application.log(e);
+                        JOptionPane.showMessageDialog(searchDecisionForm,
+                                "Unable to show all search results: " + e.getMessage());
+                    }
+                }
+                viewModels.add(viewModel);
+            }
+
             searchDecisionForm.setSearchResults(viewModels);
         } catch (SQLException e) {
             Application.log(e);
@@ -43,47 +62,29 @@ public class SearchDecisionController {
     private SearchDecisionResultViewModel buildSearchResultViewModel(
             Decision decision,
             List<UUID> decisionMakerSearchIds,
-            List<UUID> tagSearchIds) {
+            List<UUID> tagSearchIds) throws ReferenceDataException {
+
         SearchDecisionResultViewModel viewModel = new SearchDecisionResultViewModel();
         viewModel.setDecisionId(decision.getId());
         viewModel.setDecisionDateTime(decision.getTimestamp());
         viewModel.setDecisionText(decision.getDecisionText());
         viewModel.setLinkedMeetingId(decision.getLinkedMeeting());
 
-        try {
-            final PersonDAO personDAO = PersonDAO.getInstance();
-            List<String> decisionMakerSearchTerms = decisionMakerSearchIds
-                    .stream()
-                    .map(id -> personDAO.getPersonWithId(id).get().getValue())
-                    .collect(Collectors.toList());
-            viewModel.setDecisionMakerSearchTerms(decisionMakerSearchTerms);
+        List<Person> searchedDecisionMakers = ReferenceDataUtils.convertIdsToPersonList(decisionMakerSearchIds);
+        List<String> searchedDecisionMakerNames = searchedDecisionMakers.stream().map(Person::getValue).collect(Collectors.toList());
+        viewModel.setDecisionMakerSearchTerms(searchedDecisionMakerNames);
 
-            List<String> decisionMakers = new ArrayList<>();
-            viewModel.setDecisionMakers(decisionMakers);
-            for(UUID decisionMakerId: decision.getDecisionMakers()) {
-                System.out.println("looking up person with id " + decisionMakerId);
-                personDAO.getPersonWithId(decisionMakerId)
-                        .ifPresent(person -> decisionMakers.add(person.getValue()));
-            }
+        List<Person> decisionMakers = ReferenceDataUtils.convertIdsToPersonList(decision.getDecisionMakers());
+        List<String> decisionMakerNames = decisionMakers.stream().map(Person::getValue).collect(Collectors.toList());
+        viewModel.setDecisionMakers(decisionMakerNames);
 
-            final TagDAO tagDAO = TagDAO.getInstance();
-            List<String> tagSearchTerms = tagSearchIds
-                    .stream()
-                    .map(id -> tagDAO.getTagWithId(id).get().getValue())
-                    .collect(Collectors.toList());
-            viewModel.setTagSearchTerms(tagSearchTerms);
+        List<Tag> searchedTags = ReferenceDataUtils.convertIdsToTagList(tagSearchIds);
+        List<String> searchedTagNames = searchedTags.stream().map(Tag::getValue).collect(Collectors.toList());
+        viewModel.setTagSearchTerms(searchedTagNames);
 
-            List<String> tags = new ArrayList<>();
-            viewModel.setTags(tags);
-            for(UUID tagId: decision.getTags()) {
-                tagDAO.getTagWithId(tagId)
-                        .ifPresent(tag -> tags.add(tag.getValue()));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        System.out.println(viewModel);
+        List<Tag> tags = ReferenceDataUtils.convertIdsToTagList(decision.getTags());
+        List<String> tagNames = tags.stream().map(Tag::getValue).collect(Collectors.toList());
+        viewModel.setTags(tagNames);
 
         return viewModel;
     }
