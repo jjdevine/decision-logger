@@ -100,10 +100,16 @@ public class MeetingDAO {
         Meeting meeting = new Meeting(meetingId);
 
         Connection conn = Database.getConnection();
-        populateMeetingHeaderData(meeting, conn);
+        boolean exists = populateMeetingHeaderData(meeting, conn);
+
+        if(!exists) {
+            return null;
+        }
+
         populateMeetingAttendees(meeting, conn);
         populateMeetingTags(meeting, conn);
         populateMeetingDecisions(meeting, conn);
+        conn.close();
 
         return meeting;
     }
@@ -121,7 +127,7 @@ public class MeetingDAO {
         }
     }
 
-    private void populateMeetingHeaderData(Meeting meeting, Connection conn) throws SQLException {
+    private boolean populateMeetingHeaderData(Meeting meeting, Connection conn) throws SQLException {
 
         String sql = "SELECT Id, Title, Timestamp " +
                 "FROM Meeting " +
@@ -132,12 +138,16 @@ public class MeetingDAO {
 
         ResultSet rs = stmt.executeQuery();
 
-        rs.next();
+        boolean found = rs.next();
+        if(!found) {
+            return false;
+        }
         meeting.setTitle(rs.getString("Title"));
         meeting.setTimestamp(rs.getTimestamp("Timestamp").toLocalDateTime());
 
         rs.close();
         stmt.close();
+        return true;
     }
 
     private void populateMeetingAttendees(Meeting meeting, Connection conn) throws SQLException {

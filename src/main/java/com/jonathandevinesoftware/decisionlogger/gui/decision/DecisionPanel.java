@@ -13,6 +13,7 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -153,6 +154,12 @@ public class DecisionPanel extends JPanel implements ActionListener {
         if(decision != null) {
             viewModel.setDecisionId(decision.getId());
         }
+
+        switch (mode) {
+            case NEW -> viewModel.setTimestamp(LocalDateTime.now());
+            case EDIT -> viewModel.setTimestamp(decision.getTimestamp());
+        }
+
         viewModel.setDecision(taDecision.getText().trim());
 
         List<Person> decisionMakers = new ArrayList<>();
@@ -181,6 +188,8 @@ public class DecisionPanel extends JPanel implements ActionListener {
         String decision;
         java.util.List<Person> decisionMakers;
         java.util.List<Tag> tags;
+
+        LocalDateTime timestamp;
 
         public UUID getDecisionId() {
             return decisionId;
@@ -213,6 +222,14 @@ public class DecisionPanel extends JPanel implements ActionListener {
 
         public void setTags(List<Tag> tags) {
             this.tags = tags;
+        }
+
+        public LocalDateTime getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(LocalDateTime timestamp) {
+            this.timestamp = timestamp;
         }
     }
 

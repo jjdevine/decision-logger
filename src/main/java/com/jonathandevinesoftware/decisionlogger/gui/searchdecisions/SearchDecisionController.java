@@ -38,7 +38,7 @@ public class SearchDecisionController {
 
             List<SearchDecisionResultViewModel> viewModels = new ArrayList<>();
             boolean firstException = true;
-            for(Decision decision: decisionList) {
+            for(DecisionQuerySearchResult decision: decisionList) {
                 SearchDecisionResultViewModel viewModel = null;
                 try {
                     viewModel = buildSearchResultViewModel(decision, decisionMakers, tags);
@@ -60,7 +60,7 @@ public class SearchDecisionController {
     }
 
     private SearchDecisionResultViewModel buildSearchResultViewModel(
-            Decision decision,
+            DecisionQuerySearchResult decision,
             List<UUID> decisionMakerSearchIds,
             List<UUID> tagSearchIds) throws ReferenceDataException {
 
@@ -69,6 +69,7 @@ public class SearchDecisionController {
         viewModel.setDecisionDateTime(decision.getTimestamp());
         viewModel.setDecisionText(decision.getDecisionText());
         viewModel.setLinkedMeetingId(decision.getLinkedMeeting());
+        viewModel.setLinkedMeetingTitle(decision.getMeetingTitle());
 
         List<Person> searchedDecisionMakers = ReferenceDataUtils.convertIdsToPersonList(decisionMakerSearchIds);
         List<String> searchedDecisionMakerNames = searchedDecisionMakers.stream().map(Person::getValue).collect(Collectors.toList());
@@ -103,7 +104,7 @@ public class SearchDecisionController {
         System.out.println("Open meeting " + meetingId);
         try {
             Meeting meeting = MeetingDAO.getInstance().loadMeeting(meetingId);
-            new MeetingEditorController(meeting);
+            new MeetingEditorController(meeting).setOpenMainMenuOnClose(false);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

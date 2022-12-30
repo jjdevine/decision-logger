@@ -64,50 +64,20 @@ public class MeetingEditorController {
             JOptionPane.showMessageDialog(form, e.getMessage());
         }
 
-        System.out.println("Load meeting...");
-        try {
-            Meeting m = MeetingDAO.getInstance().loadMeeting(meeting.getId());
-            System.out.println(m);
-            m.getTags().forEach(id -> {
-                try {
-                    System.out.println("\t" + TagDAO.getInstance().getTagWithId(id));
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            m.getAttendees().forEach(id -> {
-                try {
-                    System.out.println("\t\t\t" + PersonDAO.getInstance().getPersonWithId(id));
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-
-
-            System.out.println("\t\tDecisions for meeting: ");
-            DecisionDAO.getInstance().loadDecisionsByLinkedMeetingId(meeting.getId()).forEach(d -> {
-                System.out.println(d);
-                d.getTags().forEach(id -> {
-                    try {
-                        System.out.println("\t\t\t" + TagDAO.getInstance().getTagWithId(id));
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-                d.getDecisionMakers().forEach(id -> {
-                    try {
-                        System.out.println("\t\t\t" + PersonDAO.getInstance().getPersonWithId(id));
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-            });
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        closeForm();
     }
 
     private void onCancelDelete(MeetingEditorForm.MeetingViewModel meetingViewModel) {
+        try {
+            Meeting meeting = MeetingDAO.getInstance().loadMeeting(meetingViewModel.getMeetingId());
+            if(meeting != null) {
+               // MeetingDAO.getInstance().deleteMeeting(meeting.getId());
+                //TODO - need a way to close those form without making database changes
+                //TODO - same for decisions?
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         closeForm();
         //TODO delete meeting if exists
     }

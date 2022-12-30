@@ -200,10 +200,12 @@ public class MeetingEditorForm extends BaseForm {
     }
 
     private void saveDecision(DecisionPanel.ViewModel viewModel) {
+        meetingDecisions.removeIf(d -> d.getId().equals(viewModel.getDecisionId()));
+
         Decision decision = new Decision(viewModel.getDecisionId());
 
         decision.setDecisionText(viewModel.getDecision());
-        decision.setTimestamp(LocalDateTime.now());
+        decision.setTimestamp(viewModel.getTimestamp());
         decision.setDecisionMakers(
                 viewModel.getDecisionMakers().stream().map(Person::getId).collect(Collectors.toList()));
         decision.setTags(
@@ -505,5 +507,7 @@ public class MeetingEditorForm extends BaseForm {
     @Override
     public void closeOperation() {
         System.exit(0);
+
+        //TODO: work out what to do here
     }
 }

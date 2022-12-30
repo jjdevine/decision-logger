@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -204,6 +205,7 @@ public class DecisionDAO {
             decisionList.add(mapRow(rs));
         }
 
+        decisionList.sort(Comparator.comparing(Decision::getTimestamp).reversed());
         rs.close();
         ps.close();
 
@@ -408,8 +410,6 @@ public class DecisionDAO {
                 }
             }
         }
-
-        //TODO: nothing renders in UI - debug
 
         rs.close();
         ps.close();

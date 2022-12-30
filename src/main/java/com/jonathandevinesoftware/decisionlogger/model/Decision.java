@@ -22,6 +22,7 @@ public class Decision {
 
     public Decision(UUID id) {
         this.id = id;
+        this.timestamp = LocalDateTime.now();
     }
 
     public UUID getId() {

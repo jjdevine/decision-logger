@@ -61,7 +61,7 @@ public class DecisionEditorController {
         }
 
         decisionToPersist.setDecisionText(viewModel.getDecision());
-        decisionToPersist.setTimestamp(LocalDateTime.now());
+        decisionToPersist.setTimestamp(viewModel.getTimestamp());
         decisionToPersist.setDecisionMakers(
                 viewModel.getDecisionMakers().stream().map(Person::getId).collect(Collectors.toList()));
         decisionToPersist.setTags(

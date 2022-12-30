@@ -85,4 +85,19 @@ public class SearchMeetingResultViewModel {
         this.title = title;
         return this;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("SearchMeetingResultViewModel{");
+        sb.append("meetingId=").append(meetingId);
+        sb.append(", title='").append(title).append('\'');
+        sb.append(", timestamp=").append(timestamp);
+        sb.append(", numberOfDecisions=").append(numberOfDecisions);
+        sb.append(", attendees=").append(attendees);
+        sb.append(", tags=").append(tags);
+        sb.append(", searchedAttendees=").append(searchedAttendees);
+        sb.append(", searchedTags=").append(searchedTags);
+        sb.append('}');
+        return sb.toString();
+    }
 }
