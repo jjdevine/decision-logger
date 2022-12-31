@@ -4,6 +4,7 @@ import com.jonathandevinesoftware.decisionlogger.gui.common.Mode;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
+import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 
 import javax.swing.*;
@@ -78,8 +79,18 @@ public class DecisionEditorForm extends BaseForm {
         cancelCallback.ifPresent(Runnable::run);
     }
 
+    private Optional<Runnable> discardCallBack = Optional.empty();
+
+    public void setDiscardCallback(Runnable callback) {
+        discardCallBack = Optional.of(callback);
+    }
+
     @Override
     public void closeOperation() {
-        cancelCallback.ifPresent(Runnable::run);
+        discardCallBack.ifPresent(Runnable::run);
+    }
+
+    public boolean changesMade() {
+        return decisionPanel.changesMade();
     }
 }

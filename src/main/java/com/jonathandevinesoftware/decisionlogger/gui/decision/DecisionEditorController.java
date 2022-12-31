@@ -3,6 +3,7 @@ package com.jonathandevinesoftware.decisionlogger.gui.decision;
 import com.jonathandevinesoftware.decisionlogger.core.ApplicationConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.common.Mode;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
+import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
@@ -10,7 +11,6 @@ import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
 
 import javax.swing.*;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,6 +43,7 @@ public class DecisionEditorController {
         form = new DecisionEditorForm(decision, mode);
         form.setSaveCallback(this::onSave);
         form.setCancelCallback(this::onCancel);
+        form.setDiscardCallback(this::onDiscard);
     }
 
     public void setOpenMainMenuOnClose(boolean openMainMenuOnClose) {
@@ -87,17 +88,44 @@ public class DecisionEditorController {
     }
 
     public void onCancel() {
-        //if editing a decision, treat as a deletion
-        if(decision != null) {
-            try {
-                DecisionDAO.getInstance().deleteDecision(decision.getId());
-            } catch (SQLException e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(form, "Could not delete! " + e.getMessage());
-                return;
-            }
+
+        String action = mode == Mode.NEW ? "Discard" : "Delete";
+
+        if (mode == Mode.NEW && !form.changesMade()) {
+            closeForm();
+            return;
         }
-        closeForm();
+
+        if(mode == Mode.NEW) {
+            GuiUtils.ConfirmDialogueWithAction(form, "Discard changes?", "Confirm", () -> {
+               closeForm();
+            });
+        }
+
+        //treat as delete in edit mode
+        if(mode == Mode.EDIT) {
+            GuiUtils.ConfirmDialogueWithAction(form, "Delete decision?", "Confirm", () -> {
+                try {
+                    DecisionDAO.getInstance().deleteDecision(decision.getId());
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(form, "Could not delete! " + e.getMessage());
+                    return;
+                }
+                closeForm();
+            });
+        }
+        //TODO - test this
+    }
+
+    private void onDiscard() {
+        if(form.changesMade()) {
+            GuiUtils.ConfirmDialogueWithAction(form, "Discard changes?", "Confirm", () -> {
+                closeForm();
+            });
+        } else {
+            closeForm();
+        }
     }
 
     private void closeForm() {

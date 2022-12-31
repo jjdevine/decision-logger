@@ -6,6 +6,7 @@ import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceData;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
 
 import javax.swing.*;
@@ -28,8 +29,6 @@ public class DecisionPanel extends JPanel implements ActionListener {
     private ValueSelectorPanel vsDecisionMakers;
     private ValueSelectorPanel vsTags;
     private JButton bSave, bCancel;
-    private String cancelMessage;
-    private String cancelTitle;
     private String cancelButtonText;
     private Decision decision;
 
@@ -40,12 +39,8 @@ public class DecisionPanel extends JPanel implements ActionListener {
         this.mode = mode;
 
         if(mode == Mode.NEW) {
-            cancelMessage = "Close without saving?";
-            cancelTitle = "Cancel Decision?";
             cancelButtonText = "Cancel Decision";
         } else {
-            cancelMessage = "Really delete this decision?";
-            cancelTitle = "Delete Decision?";
             cancelButtonText = "Delete Decision";
         }
 
@@ -101,14 +96,8 @@ public class DecisionPanel extends JPanel implements ActionListener {
                 saveCallback.ifPresent(c -> c.accept(viewModel));
             }
         } else if(e.getSource() == bCancel) {
-            int choice = JOptionPane.showConfirmDialog(
-                    this,
-                    cancelMessage,
-                    cancelTitle,
-                    JOptionPane.OK_CANCEL_OPTION);
-            if(choice == JOptionPane.OK_OPTION) {
-                cancelCallback.ifPresent(Runnable::run);
-            }
+            cancelCallback.ifPresent(Runnable::run);
+
         }
     }
 
@@ -181,6 +170,28 @@ public class DecisionPanel extends JPanel implements ActionListener {
         decision.getDecisionMakers().forEach(tag -> vsDecisionMakers.setSelectedValue(tag));
     }
 
+    public boolean changesMade() {
+        if(!taDecision.getText().equals(decision.getDecisionText())) {
+            return true;
+        }
+        if(vsDecisionMakers.getSelectedValues().size() != decision.getDecisionMakers().size()) {
+            return true;
+        }
+        for(ReferenceData decisionMaker : vsDecisionMakers.getSelectedValues()) {
+            if(!decision.getDecisionMakers().contains(decisionMaker.getId())) {
+                return true;
+            }
+        }
+        if(vsTags.getSelectedValues().size() != decision.getTags().size()) {
+            return true;
+        }
+        for(ReferenceData tag : vsTags.getSelectedValues()) {
+            if(!decision.getTags().contains(tag.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public class ViewModel {
 

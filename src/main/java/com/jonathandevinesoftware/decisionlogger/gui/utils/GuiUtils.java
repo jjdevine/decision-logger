@@ -5,6 +5,7 @@ import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Refer
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -65,5 +66,13 @@ public class GuiUtils {
             return text.substring(0, maxLength-3) + "...";
         }
         return text;
+    }
+
+    public static void ConfirmDialogueWithAction(Component parent, String message, String title,
+               Runnable confirmAction) {
+        int choice = JOptionPane.showConfirmDialog(parent, message, title, JOptionPane.OK_CANCEL_OPTION);
+        if(choice == JOptionPane.OK_OPTION) {
+            confirmAction.run();
+        }
     }
 }
