@@ -115,7 +115,6 @@ public class DecisionEditorController {
                 closeForm();
             });
         }
-        //TODO - test this
     }
 
     private void onDiscard() {

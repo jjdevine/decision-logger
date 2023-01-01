@@ -12,6 +12,7 @@ import com.jonathandevinesoftware.decisionlogger.gui.decision.TagDataSource;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
+import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
 import com.jonathandevinesoftware.decisionlogger.model.Decision;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
@@ -195,11 +196,22 @@ public class MeetingEditorForm extends BaseForm {
 
         DecisionEditorForm decisionEditorForm = new DecisionEditorForm(decision, Mode.NEW);
         openDecisionEditors.put(decision.getId(), decisionEditorForm);
-        decisionEditorForm.setCancelCallback(decisionEditorForm::dispose);
-        decisionEditorForm.setSaveCallback(this::saveDecision);
+        decisionEditorForm.setCancelCallback(() -> this.discardDecision(decisionEditorForm, decision.getId()));
+        decisionEditorForm.setSaveCallback(this::onSaveDecision);
+        decisionEditorForm.setDiscardCallback(() -> this.discardDecision(decisionEditorForm, decision.getId()));
     }
 
-    private void saveDecision(DecisionPanel.ViewModel viewModel) {
+    private void discardDecision(DecisionEditorForm form, UUID decisionId) {
+        if(form.changesMade()) {
+            GuiUtils.ConfirmDialogueWithAction(form, "Discard changes?", "Confirm", () -> {
+                closeDecisionForm(decisionId);
+            });
+        } else {
+            closeDecisionForm(decisionId);
+        }
+    }
+
+    private void onSaveDecision(DecisionPanel.ViewModel viewModel) {
         meetingDecisions.removeIf(d -> d.getId().equals(viewModel.getDecisionId()));
 
         Decision decision = new Decision(viewModel.getDecisionId());
@@ -214,9 +226,12 @@ public class MeetingEditorForm extends BaseForm {
         meetingDecisions.add(decision);
 
         refreshDecisionsDisplay();
-        //TODO - the below errors when triggered from a meeting that is being edited..
-        openDecisionEditors.get(viewModel.getDecisionId()).dispose();
-        openDecisionEditors.remove(viewModel.getDecisionId());
+        closeDecisionForm(viewModel.getDecisionId());
+    }
+
+    private void closeDecisionForm(UUID decisionId) {
+        openDecisionEditors.get(decisionId).dispose();
+        openDecisionEditors.remove(decisionId);
     }
 
     private void populateMeetingMetaData() {
@@ -224,6 +239,30 @@ public class MeetingEditorForm extends BaseForm {
         tfMeetingTitle.setText(underlyingMeeting.getTitle());
         underlyingMeeting.getTags().forEach(tag -> vsTags.setSelectedValue(tag));
         underlyingMeeting.getAttendees().forEach(attendee -> vsAttendees.setSelectedValue(attendee));
+    }
+
+    private void onEditDecision(UUID decisionId) {
+        System.out.println("Edit decision " + decisionId);
+        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(
+                meetingDecisions.stream()
+                        .filter(d -> d.getId().equals(decisionId)).findFirst().get(),
+                Mode.EDIT);
+        openDecisionEditors.put(decisionId, decisionEditorForm);
+        decisionEditorForm.setCancelCallback(() -> onCancelDecision(decisionId));
+        decisionEditorForm.setSaveCallback(this::onSaveDecision);
+        decisionEditorForm.setDiscardCallback(() -> this.discardDecision(decisionEditorForm, decisionId));
+    }
+//TODO: form behaviour of meeting form itself
+    private void onCancelDecision(UUID decisionId) {
+        GuiUtils.ConfirmDialogueWithAction(
+                openDecisionEditors.get(decisionId),
+                "Really delete decision?",
+                "Delete Decision?",
+                () -> {
+                    meetingDecisions.removeIf(d -> d.getId().equals(decisionId));
+                    closeDecisionForm(decisionId);
+                    refreshDecisionsDisplay();
+                });
     }
 
     private void refreshDecisionsDisplay() {
@@ -268,24 +307,7 @@ public class MeetingEditorForm extends BaseForm {
             decisionSummaryPanel.add(bEdit);
             decisionsPanel.addSearchResult(decisionSummaryPanel);
         }
-       revalidate();
-    }
-
-    private void onEditDecision(UUID decisionId) {
-        System.out.println("Edit decision " + decisionId);
-        DecisionEditorForm decisionEditorForm = new DecisionEditorForm(
-                meetingDecisions.stream()
-                        .filter(d -> d.getId().equals(decisionId)).findFirst().get(),
-                Mode.EDIT);
-        openDecisionEditors.put(decisionId, decisionEditorForm);
-        decisionEditorForm.setCancelCallback(() -> onCancelDecision(decisionId, decisionEditorForm));
-        decisionEditorForm.setSaveCallback(this::saveDecision);
-    }
-
-    private void onCancelDecision(UUID decisionId, DecisionEditorForm decisionEditorForm) {
-        decisionEditorForm.dispose();
-        meetingDecisions.removeIf(d -> d.getId().equals(decisionId));
-        refreshDecisionsDisplay();
+        revalidate();
     }
 
     private String getPersonName(UUID id) {

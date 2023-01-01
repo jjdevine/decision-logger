@@ -12,7 +12,7 @@ public class SearchMeetingResultPanel {
 
     public static JPanel buildSearchDecisionResultPanel(SearchMeetingResultViewModel viewModel,
                 Runnable onOpenMeeting) {
-        //TODO - this method
+
         JPanel panel = ComponentFactory.createJPanelWithMargin(0,0);
 
         int panelWidth = SearchMeetingFormConstants.FULL_COMPONENT_WIDTH-10;
