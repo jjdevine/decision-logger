@@ -19,6 +19,7 @@ import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.model.Meeting;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
+import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceData;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDAO;
 
@@ -91,7 +92,21 @@ public class MeetingEditorForm extends BaseForm {
         }
 
         populateMeetingMetaData();
+        setTextForMode();
         refreshDecisionsDisplay();
+    }
+
+    private void setTextForMode() {
+        switch (mode) {
+            case NEW:
+                bFinish.setText("Finish Meeting");
+                bCancelDelete.setText("Cancel Meeting");
+                break;
+            case EDIT:
+                bFinish.setText("Save Meeting");
+                bCancelDelete.setText("Delete Meeting");
+                break;
+        }
     }
 
     @Override
@@ -165,9 +180,9 @@ public class MeetingEditorForm extends BaseForm {
         Dimension dimTerminationButton = new Dimension(GuiConstants.DEFAULT_HALF_COMPONENT_WIDTH, 40);
 
         bFinish = ComponentFactory.createJButton(
-                "Finish Meeting", dimTerminationButton, this::onFinish);
+                "", dimTerminationButton, this::onFinish);
         bCancelDelete = ComponentFactory.createJButton(
-                "Cancel/Delete Meeting", dimTerminationButton, this::onCancelDelete);
+                "", dimTerminationButton, this::onCancelDelete);
 
         add(bFinish);
         add(bCancelDelete);
@@ -225,6 +240,7 @@ public class MeetingEditorForm extends BaseForm {
         decision.setLinkedMeeting(Optional.of(underlyingMeeting.getId()));
         meetingDecisions.add(decision);
 
+        decisionsChanged = true;
         refreshDecisionsDisplay();
         closeDecisionForm(viewModel.getDecisionId());
     }
@@ -236,6 +252,10 @@ public class MeetingEditorForm extends BaseForm {
 
     private void populateMeetingMetaData() {
         meetingDateTimePicker.setDateTimeStrict(underlyingMeeting.getTimestamp());
+
+        //remove the millisecond element from underlying meeting...
+        underlyingMeeting.setTimestamp(meetingDateTimePicker.getDateTimeStrict());
+
         tfMeetingTitle.setText(underlyingMeeting.getTitle());
         underlyingMeeting.getTags().forEach(tag -> vsTags.setSelectedValue(tag));
         underlyingMeeting.getAttendees().forEach(attendee -> vsAttendees.setSelectedValue(attendee));
@@ -252,7 +272,7 @@ public class MeetingEditorForm extends BaseForm {
         decisionEditorForm.setSaveCallback(this::onSaveDecision);
         decisionEditorForm.setDiscardCallback(() -> this.discardDecision(decisionEditorForm, decisionId));
     }
-//TODO: form behaviour of meeting form itself
+
     private void onCancelDecision(UUID decisionId) {
         GuiUtils.ConfirmDialogueWithAction(
                 openDecisionEditors.get(decisionId),
@@ -262,6 +282,7 @@ public class MeetingEditorForm extends BaseForm {
                     meetingDecisions.removeIf(d -> d.getId().equals(decisionId));
                     closeDecisionForm(decisionId);
                     refreshDecisionsDisplay();
+                    decisionsChanged = true;
                 });
     }
 
@@ -353,6 +374,8 @@ public class MeetingEditorForm extends BaseForm {
     private Consumer<MeetingViewModel> onFinishCallback;
     private Consumer<MeetingViewModel> onCancelDeleteCallback;
 
+    private Optional<Runnable> onDiscardCallBack = Optional.empty();
+
     public void setOnFinishCallback(Consumer<MeetingViewModel> onFinishCallback) {
         this.onFinishCallback = onFinishCallback;
     }
@@ -361,17 +384,24 @@ public class MeetingEditorForm extends BaseForm {
         this.onCancelDeleteCallback = onCancelDeleteCallback;
     }
 
+    public void setOnDiscardCallback(Runnable callback) {
+        onDiscardCallBack = Optional.of(callback);
+    }
+
     private void onFinish() {
-        closeChildWindows();
         onFinishCallback.accept(buildViewModel());
     }
 
     private void onCancelDelete() {
-        closeChildWindows();
-        onFinishCallback.accept(buildViewModel());
+        onCancelDeleteCallback.accept(buildViewModel());
     }
 
-    private void closeChildWindows() {
+    @Override
+    public void closeOperation() {
+        onDiscardCallBack.ifPresent(Runnable::run);
+    }
+
+    public void closeChildWindows() {
         openDecisionEditors.keySet().forEach(uuid -> {
             DecisionEditorForm decisionEditorForm = openDecisionEditors.get(uuid);
             if(decisionEditorForm != null) {
@@ -526,10 +556,39 @@ public class MeetingEditorForm extends BaseForm {
         }
     }
 
-    @Override
-    public void closeOperation() {
-        System.exit(0);
+    boolean decisionsChanged = false;
 
-        //TODO: work out what to do here
+    public boolean changesMade() {
+        if(decisionsChanged) {
+            return true;
+        }
+
+        if(!meetingDateTimePicker.getDateTimeStrict().equals(underlyingMeeting.getTimestamp())) {
+            return true;
+        }
+
+        if(!tfMeetingTitle.getText().trim().equals(underlyingMeeting.getTitle())) {
+            return true;
+        }
+
+        if(vsAttendees.getSelectedValues().size() != underlyingMeeting.getAttendees().size()) {
+            return true;
+        }
+        for(ReferenceData attendee : vsAttendees.getSelectedValues()) {
+            if(!underlyingMeeting.getAttendees().contains(attendee.getId())) {
+                return true;
+            }
+        }
+        if(vsTags.getSelectedValues().size() != underlyingMeeting.getTags().size()) {
+            return true;
+        }
+        for(ReferenceData tag : vsTags.getSelectedValues()) {
+            if(!underlyingMeeting.getTags().contains(tag.getId())) {
+                return true;
+            }
+        }
+
+        return false;
     }
+
 }

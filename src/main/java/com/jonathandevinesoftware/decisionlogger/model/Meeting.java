@@ -37,6 +37,9 @@ public class Meeting {
     }
 
     public String getTitle() {
+        if(title == null) {
+            return "";
+        }
         return title;
     }
 

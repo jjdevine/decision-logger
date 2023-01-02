@@ -1,12 +1,12 @@
 package com.jonathandevinesoftware.decisionlogger.gui.meeting;
 
+import com.jonathandevinesoftware.decisionlogger.core.Application;
 import com.jonathandevinesoftware.decisionlogger.gui.common.Mode;
 import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
+import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiUtils;
 import com.jonathandevinesoftware.decisionlogger.model.DecisionDAO;
 import com.jonathandevinesoftware.decisionlogger.model.Meeting;
 import com.jonathandevinesoftware.decisionlogger.model.MeetingDAO;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDAO;
 
 import javax.swing.*;
 import java.sql.SQLException;
@@ -18,15 +18,21 @@ public class MeetingEditorController {
     private MeetingEditorForm form;
     private boolean openMainMenuOnClose = true;
 
+    private Mode mode;
+
     public MeetingEditorController() {
+        mode = Mode.NEW;
         Meeting meeting = new Meeting(UUID.randomUUID());
         form = new MeetingEditorForm(meeting, Mode.NEW);
+        form.setOnDiscardCallback(this::onDiscard);
         form.setOnCancelDeleteCallback(this::onCancelDelete);
         form.setOnFinishCallback(this::onFinish);
     }
 
     public MeetingEditorController(Meeting meeting) {
+        mode = Mode.EDIT;
         form = new MeetingEditorForm(meeting, Mode.EDIT);
+        form.setOnDiscardCallback(this::onDiscard);
         form.setOnCancelDeleteCallback(this::onCancelDelete);
         form.setOnFinishCallback(this::onFinish);
     }
@@ -68,18 +74,33 @@ public class MeetingEditorController {
     }
 
     private void onCancelDelete(MeetingEditorForm.MeetingViewModel meetingViewModel) {
-        try {
-            Meeting meeting = MeetingDAO.getInstance().loadMeeting(meetingViewModel.getMeetingId());
-            if(meeting != null) {
-               // MeetingDAO.getInstance().deleteMeeting(meeting.getId());
-                //TODO - need a way to close those form without making database changes
-                //TODO - same for decisions?
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+
+        if(mode == Mode.NEW) {
+            onDiscard();
+            return;
         }
-        closeForm();
-        //TODO delete meeting if exists
+
+        if(mode == Mode.EDIT) {   //delete meeting
+            GuiUtils.ConfirmDialogueWithAction(form, "Really delete meeting?", "Confirm", () -> {
+                try {
+                    MeetingDAO.getInstance().deleteMeeting(meetingViewModel.getMeetingId());
+                    closeForm();
+                } catch (SQLException e) {
+                    Application.log(e);
+                    JOptionPane.showMessageDialog(form, "Could not delete: " + e.getMessage());
+                }
+            });
+        }
+    }
+
+    private void onDiscard() {
+        if(form.changesMade()) {
+            GuiUtils.ConfirmDialogueWithAction(form, "Discard changes?", "Confirm", () -> {
+                closeForm();
+            });
+        } else {
+            closeForm();
+        }
     }
 
     public void setOpenMainMenuOnClose(boolean openMainMenuOnClose) {
@@ -87,6 +108,7 @@ public class MeetingEditorController {
     }
 
     private void closeForm() {
+        form.closeChildWindows();
         form.dispose();
         form = null;
         if(openMainMenuOnClose) {

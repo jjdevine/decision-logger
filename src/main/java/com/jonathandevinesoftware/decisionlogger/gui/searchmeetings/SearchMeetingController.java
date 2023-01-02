@@ -4,21 +4,20 @@ import com.jonathandevinesoftware.decisionlogger.core.Application;
 import com.jonathandevinesoftware.decisionlogger.model.Meeting;
 import com.jonathandevinesoftware.decisionlogger.model.MeetingDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Person;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.PersonDAO;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceDataException;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.ReferenceDataUtils;
 import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.Tag;
-import com.jonathandevinesoftware.decisionlogger.persistence.referencedata.TagDAO;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class SearchMeetingController {
 
     private SearchMeetingForm form;
+
+    //TODO: meeting button behaviour when opened from a search
 
     public SearchMeetingController() {
         form = new SearchMeetingForm("Search Meetings");
@@ -34,6 +33,7 @@ public class SearchMeetingController {
             List<SearchMeetingResultViewModel> viewModels =
                     meetings.stream()
                             .map(m -> buildSearchMeetingResultViewModel(m, searchParameters))
+                            .sorted(Comparator.comparing(SearchMeetingResultViewModel::getTimestamp).reversed())
                             .collect(Collectors.toList());
             form.setSearchResults(viewModels);
         } catch (SQLException e) {
