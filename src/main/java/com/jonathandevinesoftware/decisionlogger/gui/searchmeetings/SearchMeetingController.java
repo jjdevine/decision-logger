@@ -39,24 +39,6 @@ public class SearchMeetingController {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-        meetings.forEach(m -> {
-            System.out.println(m);
-            System.out.println();
-        });
-
-        /*
-                try {
-            List<Decision> decisionList = DecisionDAO.getInstance().queryDecisions(decisionMakers, tags);
-            List<SearchDecisionResultViewModel> viewModels =
-                    decisionList.stream()
-                            .map(d -> buildSearchResultViewModel(d, decisionMakers, tags))
-                            .collect(Collectors.toList());
-            searchDecisionForm.setSearchResults(viewModels);
-        } catch (SQLException e) {
-            Application.log(e);
-        }
-         */
     }
 
     private SearchMeetingResultViewModel buildSearchMeetingResultViewModel(

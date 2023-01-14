@@ -101,12 +101,18 @@ public class MeetingEditorForm extends BaseForm {
             case NEW:
                 bFinish.setText("Finish Meeting");
                 bCancelDelete.setText("Cancel Meeting");
+                setHeaderPanelText("New Meeting");
                 break;
             case EDIT:
                 bFinish.setText("Save Meeting");
                 bCancelDelete.setText("Delete Meeting");
+                setHeaderPanelText("Edit Meeting");
                 break;
         }
+    }
+
+    private void setHeaderPanelText(String text) {
+        ((JLabel)headerPanel.getComponent(0)).setText(text);
     }
 
     @Override

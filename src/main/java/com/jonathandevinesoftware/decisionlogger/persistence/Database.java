@@ -36,6 +36,9 @@ public class Database {
 
           //  dropAllTables();
             initialiseTables(getConnection());
+            if(ApplicationConstants.DEBUG) {
+                printAllTables();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -149,6 +152,23 @@ public class Database {
             stmt.execute();
             stmt.close();
             System.out.println("Dropped table <" + table + ">");
+        }
+        conn.close();
+    }
+
+    private static void printAllTables() throws SQLException {
+        Connection conn = getConnection();
+        List<String> allTables = getExistingTables(conn);
+        ResultSet rs = null;
+
+        for(String table: allTables) {
+            String sql = "SELECT * FROM " + table;
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
+            System.out.println("\n\n" + table);
+            debugResultSet(rs);
+            rs.close();
+            stmt.close();
         }
         conn.close();
     }

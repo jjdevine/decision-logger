@@ -7,6 +7,7 @@ import com.jonathandevinesoftware.decisionlogger.gui.decision.PersonDataSource;
 import com.jonathandevinesoftware.decisionlogger.gui.decision.TagDataSource;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.BaseForm;
 import com.jonathandevinesoftware.decisionlogger.gui.factory.ComponentFactory;
+import com.jonathandevinesoftware.decisionlogger.gui.mainmenu.MainMenuController;
 import com.jonathandevinesoftware.decisionlogger.gui.meeting.MeetingEditorController;
 import com.jonathandevinesoftware.decisionlogger.gui.utils.GuiConstants;
 import com.jonathandevinesoftware.decisionlogger.gui.valueselector.ValueSelectorPanel;
@@ -51,7 +52,7 @@ public class SearchMeetingForm extends BaseForm {
 
     @Override
     protected void init() {
-        setPreferredSize(new Dimension((int) (SearchMeetingFormConstants.FORM_WIDTH), 960));
+        setPreferredSize(new Dimension(SearchMeetingFormConstants.FORM_WIDTH, 960));
         JPanel headerPanel = ComponentFactory.createHeaderPanel(
                 "Search Meetings",
                 new Dimension(
@@ -155,7 +156,8 @@ public class SearchMeetingForm extends BaseForm {
 
     @Override
     public void closeOperation() {
-        System.exit(0);
+        dispose();
+        MainMenuController.getInstance().displayMainMenu();
     }
 
     public void setSearchResults(List<SearchMeetingResultViewModel> viewModels) {
